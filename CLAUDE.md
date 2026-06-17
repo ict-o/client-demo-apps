@@ -104,6 +104,16 @@ https://<owner>.github.io/client-demo-apps/<demo-directory>/
 
 ---
 
+## ルート index.html の更新（必須）
+
+新しいデモディレクトリを追加・削除した際は、**必ずリポジトリ直下の `index.html` も合わせて更新すること。**
+
+- 追加時：新しいデモへのカードリンク（`.demo-card`）を `.demo-list` に追加する
+- 削除時：対応するカードリンクを削除する
+- 記載内容：デモ名（日本語）・ディレクトリ名（`.demo-slug`）・デモ概要（`.demo-desc`）
+
+---
+
 ## 各デモディレクトリの README
 
 デモを新規追加する際は、そのディレクトリに `README.md` を作成すること。
