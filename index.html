@@ -15,14 +15,112 @@
         padding: 48px 24px 80px;
       }
 
+      /* ── ログイン画面 ── */
+      #login-screen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 24px;
+        margin: -48px -24px -80px;
+      }
+
+      .login-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 40px 36px;
+        width: 100%;
+        max-width: 360px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.10);
+        text-align: center;
+      }
+
+      .login-card h2 {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
+      .login-card p {
+        font-size: 13px;
+        color: #6e6e73;
+        margin-bottom: 28px;
+      }
+
+      .login-field {
+        position: relative;
+        margin-bottom: 12px;
+      }
+
+      .login-field input {
+        width: 100%;
+        padding: 12px 44px 12px 16px;
+        border: 1.5px solid #e5e5ea;
+        border-radius: 10px;
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.15s;
+        background: #fafafa;
+      }
+
+      .login-field input:focus {
+        border-color: #0071e3;
+        background: #fff;
+      }
+
+      .login-field input.error {
+        border-color: #ff3b30;
+      }
+
+      .toggle-pw {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #aeaeb2;
+        font-size: 16px;
+        line-height: 1;
+        padding: 4px;
+      }
+
+      .toggle-pw:hover { color: #6e6e73; }
+
+      .error-msg {
+        font-size: 12px;
+        color: #ff3b30;
+        margin-bottom: 14px;
+        min-height: 16px;
+        text-align: left;
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 13px;
+        background: #0071e3;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .login-btn:hover { background: #0077ed; }
+      .login-btn:active { background: #006bda; }
+
+      /* ── デモ一覧 ── */
+      #main-content { display: none; }
+
       .container {
         max-width: 720px;
         margin: 0 auto;
       }
 
-      header {
-        margin-bottom: 40px;
-      }
+      header { margin-bottom: 40px; }
 
       header h1 {
         font-size: 28px;
@@ -66,10 +164,7 @@
         box-shadow: 0 1px 4px rgba(0,0,0,.08);
       }
 
-      .demo-info {
-        flex: 1;
-        min-width: 0;
-      }
+      .demo-info { flex: 1; min-width: 0; }
 
       .demo-title {
         font-size: 17px;
@@ -105,41 +200,114 @@
     </style>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>デモ一覧</h1>
-        <p>各デモへのリンクです。カードをクリックして確認できます。</p>
-      </header>
 
-      <div class="demo-list">
-
-        <a class="demo-card" href="./bridal-estimate-demo/">
-          <div class="demo-info">
-            <div class="demo-title">ブライダル見積作成システム</div>
-            <div class="demo-slug">bridal-estimate-demo</div>
-            <div class="demo-desc">
-              ブライダル事業向けの見積作成デモ。選択式ウィザードによる新規見積作成・明細編集・顧客向け見積書プレビュー・PDF出力モーダルを体験できます。
-            </div>
-          </div>
-          <span class="demo-arrow">›</span>
-        </a>
-
-        <a class="demo-card" href="./print-estimate-demo/">
-          <div class="demo-info">
-            <div class="demo-title">印刷見積標準化支援システム</div>
-            <div class="demo-slug">print-estimate-demo</div>
-            <div class="demo-desc">
-              印刷会社向けの見積標準化・標準価格算出支援デモ。CSV 取込データをもとに見積算出フローを確認できます。
-            </div>
-          </div>
-          <span class="demo-arrow">›</span>
-        </a>
-
+    <!-- ログイン画面 -->
+    <div id="login-screen">
+      <div class="login-card">
+        <h2>デモ一覧</h2>
+        <p>閲覧にはパスワードが必要です</p>
+        <div class="login-field">
+          <input type="password" id="pw-input" placeholder="パスワード" autocomplete="current-password" />
+          <button class="toggle-pw" type="button" id="toggle-pw" aria-label="パスワードを表示">
+            &#128065;
+          </button>
+        </div>
+        <div class="error-msg" id="error-msg"></div>
+        <button class="login-btn" id="login-btn">ログイン</button>
       </div>
-
-      <footer>
-        架空データを使用したデモ環境です。実在する顧客・案件情報は含まれていません。
-      </footer>
     </div>
+
+    <!-- デモ一覧 -->
+    <div id="main-content">
+      <div class="container">
+        <header>
+          <h1>デモ一覧</h1>
+          <p>各デモへのリンクです。カードをクリックして確認できます。</p>
+        </header>
+
+        <div class="demo-list">
+
+          <a class="demo-card" href="./bridal-estimate-demo/">
+            <div class="demo-info">
+              <div class="demo-title">ブライダル見積作成システム</div>
+              <div class="demo-slug">bridal-estimate-demo</div>
+              <div class="demo-desc">
+                ブライダル事業向けの見積作成デモ。選択式ウィザードによる新規見積作成・明細編集・顧客向け見積書プレビュー・PDF出力モーダルを体験できます。
+              </div>
+            </div>
+            <span class="demo-arrow">›</span>
+          </a>
+
+          <a class="demo-card" href="./print-estimate-demo/">
+            <div class="demo-info">
+              <div class="demo-title">印刷見積標準化支援システム</div>
+              <div class="demo-slug">print-estimate-demo</div>
+              <div class="demo-desc">
+                印刷会社向けの見積標準化・標準価格算出支援デモ。CSV 取込データをもとに見積算出フローを確認できます。
+              </div>
+            </div>
+            <span class="demo-arrow">›</span>
+          </a>
+
+        </div>
+
+        <footer>
+          架空データを使用したデモ環境です。実在する顧客・案件情報は含まれていません。
+        </footer>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var SESSION_KEY = 'demo_auth';
+        var HASH = 'efd807d28e409fbff50e49bac59521091ba42de65de14bc8f63726739274ff21';
+
+        function unlock() {
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('main-content').style.display = 'block';
+        }
+
+        if (sessionStorage.getItem(SESSION_KEY) === '1') {
+          unlock();
+          return;
+        }
+
+        var input     = document.getElementById('pw-input');
+        var errMsg    = document.getElementById('error-msg');
+        var loginBtn  = document.getElementById('login-btn');
+        var toggleBtn = document.getElementById('toggle-pw');
+
+        async function attempt() {
+          var encoded = new TextEncoder().encode(input.value);
+          var buf     = await crypto.subtle.digest('SHA-256', encoded);
+          var hex     = Array.from(new Uint8Array(buf)).map(function (b) {
+            return b.toString(16).padStart(2, '0');
+          }).join('');
+
+          if (hex === HASH) {
+            sessionStorage.setItem(SESSION_KEY, '1');
+            unlock();
+          } else {
+            input.classList.add('error');
+            errMsg.textContent = 'パスワードが正しくありません';
+            input.value = '';
+            input.focus();
+          }
+        }
+
+        loginBtn.addEventListener('click', attempt);
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') attempt();
+          input.classList.remove('error');
+          errMsg.textContent = '';
+        });
+
+        toggleBtn.addEventListener('click', function () {
+          input.type = input.type === 'password' ? 'text' : 'password';
+        });
+
+        input.focus();
+      })();
+    </script>
   </body>
 </html>
