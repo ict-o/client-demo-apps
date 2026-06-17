@@ -1,0 +1,65 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #F8F6F1;
+  --card: #FFFFFF;
+  --text: #2F2A25;
+  --text-sub: #7A736B;
+  --border: #E6DED3;
+  --accent: #B89B72;
+  --accent-light: #EFE6D8;
+  --accent-dark: #9A8060;
+  --success: #7A9B72;
+  --error: #C0524A;
+  --shadow-sm: 0 1px 3px rgba(47, 42, 37, 0.06);
+  --shadow-md: 0 4px 12px rgba(47, 42, 37, 0.08);
+  --shadow-lg: 0 8px 24px rgba(47, 42, 37, 0.12);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --font-sans: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-align: left;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+input, select, textarea {
+  font-family: var(--font-sans);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-sub);
+}
