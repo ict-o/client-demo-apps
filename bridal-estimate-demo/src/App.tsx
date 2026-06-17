@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import type { Estimate } from './types';
 import { sampleEstimateList, initialEstimate } from './data/sampleData';
 import { Layout } from './components/Layout';
@@ -8,8 +8,6 @@ import { EstimateWizard } from './pages/EstimateWizard';
 import { EstimateEdit } from './pages/EstimateEdit';
 import { EstimatePreview } from './pages/EstimatePreview';
 import { BVManager } from './pages/BVManager';
-
-const BASE = '/client-demo-apps/bridal-estimate-demo';
 
 export default function App() {
   const [estimates, setEstimates] = useState<Estimate[]>(sampleEstimateList);
@@ -32,7 +30,7 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter basename={BASE}>
+    <HashRouter>
       <Layout>
         <Routes>
           <Route
@@ -67,6 +65,6 @@ export default function App() {
           />
         </Routes>
       </Layout>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
