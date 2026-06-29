@@ -1,0 +1,49 @@
+/*
+ * スマホ最適化 / レスポンシブ対応
+ *
+ * バンドル本体（app.js）は無改変のまま、Tailwind ユーティリティクラスを
+ * メディアクエリ + !important で上書きして、狭い画面で縦積みになるよう調整します。
+ * （app.js が実行時に <head> へ注入する Tailwind スタイルより後勝ちにするため !important を使用）
+ */
+
+/* テーブルはスマホでも横スクロールで全列を確認できるように（慣性スクロール） */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== タブレット〜スマホ：メインの2カラム（条件入力 / 算出結果）を縦積み ===== */
+@media (max-width: 880px) {
+  /* grid grid-cols-5（col-span-2 + col-span-3）→ 1カラム */
+  .grid-cols-5 {
+    grid-template-columns: 1fr !important;
+  }
+  .col-span-2,
+  .col-span-3 {
+    grid-column: auto !important;
+  }
+
+  /* パネル見出し（タイトル＋補足）が窮屈なら折り返す */
+  .bg-\[\#F8FAFC\].justify-between {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  /* 最上部ヘッダーも折り返し可に */
+  .justify-between.px-5 {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+}
+
+/* ===== スマホ：入力フォームの2カラムを1カラムへ ===== */
+@media (max-width: 600px) {
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* iOS でフォーカス時に自動ズームしないよう、フォーム部品は 16px 以上に */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
