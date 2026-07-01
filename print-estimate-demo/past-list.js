@@ -251,14 +251,30 @@
     if (panel) panel.style.display = 'none';
   }
 
+  // 現在表示すべき顧客名（非表示のときは null）。
+  // React の再レンダリングで手動挿入した #pl-past-estimate-panel ごと
+  // 消えることがあるため、MutationObserver 側でこの状態を見て復元する。
+  var currentDisplayName = null;
+
+  function ensurePanel() {
+    var existed = !!document.getElementById(PANEL_ID);
+    if (!existed) {
+      insertPanel();
+    }
+    if (currentDisplayName !== null) {
+      renderPanel(currentDisplayName);
+    }
+  }
+
   /* ─── 起動 ─────────────────────────────────────── */
   function start() {
     insertPanel();
 
-    // MutationObserver で React の再レンダリングを捕捉（パネルの再挿入のみ）
+    // MutationObserver で React の再レンダリングを捕捉し、
+    // パネルが消えていれば再挿入、表示中であれば内容を復元する
     var root = document.getElementById('root') || document.body;
     var observer = new MutationObserver(function () {
-      insertPanel();
+      ensurePanel();
     });
     observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true });
 
@@ -268,7 +284,8 @@
       if (!btn) return;
       var label = (btn.textContent || '').trim();
       if (SEARCH_BUTTON_LABELS.indexOf(label) === -1) return;
-      renderPanel(getCustomerNameValue());
+      currentDisplayName = getCustomerNameValue();
+      ensurePanel();
     });
 
     // 顧客名が変更されたら、次に検索ボタンが押されるまで過去見積一覧を隠す
@@ -277,6 +294,7 @@
       var val = getCustomerNameValue();
       if (val === lastCustomerName) return;
       lastCustomerName = val;
+      currentDisplayName = null;
       hidePanel();
     });
   }
