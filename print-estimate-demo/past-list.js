@@ -226,46 +226,59 @@
     }
   }
 
-  /* ─── 顧客名入力の監視 ────────────────────────────── */
-  var lastCustomerName = '';
-
-  function checkCustomerInput() {
+  /* ─── 顧客名入力の取得 ────────────────────────────── */
+  function getCustomerNameValue() {
     // 「顧客名」ラベルに隣接する input を探す
     var rows = document.querySelectorAll('tr');
-    var input = null;
     for (var i = 0; i < rows.length; i++) {
       var cells = rows[i].querySelectorAll('td');
       if (cells.length >= 2) {
         var label = (cells[0].textContent || '').trim();
         if (label === '顧客名') {
-          input = cells[1].querySelector('input[type="text"]');
-          break;
+          var input = cells[1].querySelector('input[type="text"]');
+          return input ? input.value || '' : '';
         }
       }
     }
+    return '';
+  }
 
-    if (!input) return;
+  // 過去見積一覧の表示トリガーとなる検索ボタンのラベル
+  var SEARCH_BUTTON_LABELS = ['類似見積検索'];
 
-    var val = input.value || '';
-    if (val === lastCustomerName) return;
-    lastCustomerName = val;
-    renderPanel(val);
+  function hidePanel() {
+    var panel = document.getElementById(PANEL_ID);
+    if (panel) panel.style.display = 'none';
   }
 
   /* ─── 起動 ─────────────────────────────────────── */
   function start() {
     insertPanel();
 
-    // MutationObserver で React の再レンダリングを捕捉
+    // MutationObserver で React の再レンダリングを捕捉（パネルの再挿入のみ）
     var root = document.getElementById('root') || document.body;
     var observer = new MutationObserver(function () {
       insertPanel();
-      checkCustomerInput();
     });
     observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true });
 
-    // 初回チェック
-    checkCustomerInput();
+    // 「類似見積検索」ボタン押下時にのみ過去見積一覧を表示する
+    document.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('button') : null;
+      if (!btn) return;
+      var label = (btn.textContent || '').trim();
+      if (SEARCH_BUTTON_LABELS.indexOf(label) === -1) return;
+      renderPanel(getCustomerNameValue());
+    });
+
+    // 顧客名が変更されたら、次に検索ボタンが押されるまで過去見積一覧を隠す
+    var lastCustomerName = getCustomerNameValue();
+    document.addEventListener('input', function () {
+      var val = getCustomerNameValue();
+      if (val === lastCustomerName) return;
+      lastCustomerName = val;
+      hidePanel();
+    });
   }
 
   if (document.readyState === 'loading') {
