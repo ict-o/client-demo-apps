@@ -24,6 +24,7 @@ description: >-
 - **ディレクトリ名**（`<demo-directory>`）: 英小文字・数字・ハイフンのみ。機能が分かる名前。`case1` 等の抽象名・実在企業名は不可。
 - **日本語のデモ名**（ルート index.html のカード見出し用）。
 - **デモ概要**（1〜2文）。
+- **性格**: 業務システム型か SaaS型か（CLAUDE.md §2-2。迷ったら業務システム型）。業務システム型なら**システム名・UI文言・`<title>` は全て日本語**。
 
 技術スタックは既定で **React 19 + TypeScript + Vite（最新安定版）**。ビルドで静的ファイルを生成し Pages で閲覧できる構成にする（サーバ処理は使わない）。
 
@@ -37,11 +38,12 @@ description: >-
 2. `<demo-directory>/vite.config.ts` を CLAUDE.md §6 の雛形で作る。**`base` はディレクトリ名と完全一致**、`outDir: '.'`、`emptyOutDir: false`。
 3. `package.json`・`tsconfig*.json`・`eslint.config.js`・`src/`・`index.html`（開発用エントリ）を用意する（bridal からコピーして中身を差し替えると速い）。
    - **依存は最新安定版に更新する**（React・Vite・TypeScript 等）。bridal の `package.json` を丸ごと固定コピーせず、バージョンを最新へ引き上げる（CLAUDE.md §2-0）。
-4. サンプルデータは**すべて架空**にする（CLAUDE.md §4-4）。
+4. サンプルデータは**すべて架空**にする（CLAUDE.md §4-4。`dummy-data` スキルの安全パターンを使う）。
+4-2. UI は CLAUDE.md **§5-UI の共通合格条件**を最初から満たすように作る（デザイントークン・hover/focus・0件時文言・金額3桁区切り等）。`bridal-estimate-demo/src/index.css` のトークン構成が手本。
 5. `<demo-directory>` で `npm install` → `npm run build`。**ビルド成功＝完了条件**。
 6. ビルドで生成された **デモ直下の `index.html` と `assets/`** を確認する。`dist/` の下に出ていないこと。
 7. `index.html` が参照する `assets/index-XXXX.js`/`.css` の**実ファイルが存在**することを確認（ハッシュ整合）。
-8. `<demo-directory>/README.md` を作る。含める: デモ名・目的・想定ユースケース・使用技術・ビルド方法・公開URL（`https://ict-o.github.io/client-demo-apps/<demo-directory>/`）・**架空データ明記**・顧客固有情報を含まない旨。
+8. `<demo-directory>/README.md` を作る。含める: デモ名・目的・想定ユースケース・**性格（業務システム型/SaaS型）**・使用技術・ビルド方法・公開URL（`https://ict-o.github.io/client-demo-apps/<demo-directory>/`）・**架空データ明記**・顧客固有情報を含まない旨。
 9. §4（ルートカード）へ。
 
 ### 2-B. 静的バンドル型を作る場合
@@ -89,4 +91,4 @@ feat: <demo-directory> デモを追加
 
 ## 完了条件
 
-CLAUDE.md §5 の該当成果物（A または B）のチェックリストが全て YES。
+CLAUDE.md §5 の該当成果物（A または B）のチェックリストと、§5-UI の共通UI/UX合格条件が全て YES。
