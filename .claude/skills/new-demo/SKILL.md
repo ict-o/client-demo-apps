@@ -16,23 +16,27 @@ description: >-
 
 ### 0. 事前情報を確定する（不足なら1回だけ質問）
 
+**既定はゼロから作る＝Viteビルド型（最新技術スタック）**（CLAUDE.md §2-0）。
+既存の共有 `app.js` を流用する派生デモを作りたいと明示された場合のみ `clone-demo` スキルへ回す。
+
 次が未確定なら `AskUserQuestion` でまとめて聞く:
 
-- **デモ種別**: Viteビルド型（React/TS で新規に作る）か、静的バンドル型（既存 `app.js` を流用する）か。
-  - 既存バンドルを流用したい場合は、このスキルではなく `clone-demo` スキルの方が近い。迷ったら確認。
 - **ディレクトリ名**（`<demo-directory>`）: 英小文字・数字・ハイフンのみ。機能が分かる名前。`case1` 等の抽象名・実在企業名は不可。
 - **日本語のデモ名**（ルート index.html のカード見出し用）。
 - **デモ概要**（1〜2文）。
+
+技術スタックは既定で **React 19 + TypeScript + Vite（最新安定版）**。ビルドで静的ファイルを生成し Pages で閲覧できる構成にする（サーバ処理は使わない）。
 
 ### 1. ブランチ確認
 
 `git status` / `git branch` を実行。指定作業ブランチにいることを確認する。`main` なら作業しない（CLAUDE.md §4-7）。
 
-### 2-A. Viteビルド型を作る場合
+### 2-A. Viteビルド型を作る場合（既定）
 
 1. 既存の `bridal-estimate-demo` を参照実装として構造を踏襲する。
 2. `<demo-directory>/vite.config.ts` を CLAUDE.md §6 の雛形で作る。**`base` はディレクトリ名と完全一致**、`outDir: '.'`、`emptyOutDir: false`。
 3. `package.json`・`tsconfig*.json`・`eslint.config.js`・`src/`・`index.html`（開発用エントリ）を用意する（bridal からコピーして中身を差し替えると速い）。
+   - **依存は最新安定版に更新する**（React・Vite・TypeScript 等）。bridal の `package.json` を丸ごと固定コピーせず、バージョンを最新へ引き上げる（CLAUDE.md §2-0）。
 4. サンプルデータは**すべて架空**にする（CLAUDE.md §4-4）。
 5. `<demo-directory>` で `npm install` → `npm run build`。**ビルド成功＝完了条件**。
 6. ビルドで生成された **デモ直下の `index.html` と `assets/`** を確認する。`dist/` の下に出ていないこと。
