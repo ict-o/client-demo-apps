@@ -82,6 +82,18 @@ git diff --staged
 grep -rn "\.env\|api[_-]\?key\|secret\|token" --include=*.ts --include=*.js --include=*.html . | grep -vi "TextEncoder\|csrf"
 ```
 
+### 6-2. UI/UX 基準の確認（画面を触った変更のみ）
+
+変更した画面・コンポーネントに対して CLAUDE.md §5-UI を確認する（全項目の精査が必要なら `uiux-audit` スキルを実行）。最低限ここでは:
+
+```bash
+grep -rin "lorem\|テストテスト\|TODO" --include=*.tsx --include=*.html <触ったデモ> | grep -v node_modules   # 仮置き文言
+grep -o "<title>[^<]*</title>" <触ったデモ>/index.html                                                       # 業務システム型なら日本語タイトルか
+```
+
+- 業務システム型（CLAUDE.md §2-2）なのに英語UIラベル・英語システム名を**新たに持ち込んでいない**か。
+- 新規追加したデータが `dummy-data` スキルの安全パターン（example.com ドメイン・0番地住所・0000電話等）に従っているか。
+
 ### 7. コミットメッセージ規約
 
 - 日本語・`<種別>: <要約>` 形式か（CLAUDE.md §3）。

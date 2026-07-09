@@ -64,12 +64,13 @@ cp <src-demo>/responsive.css <new-demo>/responsive.css
 
 - 参照は全て `./` 相対（裸絶対パス禁止・CLAUDE.md §8）。
 - `<title>`・`<meta description>` を新デモ用に更新。ただし**実在企業名・製品名を新たに持ち込まない**（迷えば §11 で確認）。
+- 業務システム型（既存の静的バンドル型デモは全てこれ・CLAUDE.md §2-2）なら `<title>` とオーバーレイで足す文言は**全て日本語**。オーバーレイで注入するUIは §5-UI の共通合格条件を満たす。
 
 ### 5. README.md を作る
 
 `standard-price-demo/README.md` を手本に、次を書く:
 
-- デモ名・目的・想定ユースケース。
+- デモ名・目的・想定ユースケース・**性格（業務システム型/SaaS型・CLAUDE.md §2-2）**。
 - **構成**: `app.js` は流用元と同一バンドル（無改変）、`<overlay>.js` が出し分けを担う旨。
 - 残した機能 / 省いた（隠した）機能の一覧。
 - 公開URL `https://ict-o.github.io/client-demo-apps/<new-demo>/`。
