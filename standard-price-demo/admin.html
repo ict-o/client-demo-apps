@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>管理画面 | 標準価格算出デモ</title>
-    <meta name="description" content="標準価格算出デモの管理画面。プルダウン選択肢マスタと単価マスタを管理します。" />
+    <meta name="description" content="標準価格算出デモの管理画面。プルダウン選択肢マスタと標準基準価格マスタを管理します。" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -461,7 +461,7 @@
       <div class="admin-header">
         <div>
           <h1>標準価格算出デモ　管理画面</h1>
-          <div class="sub">プルダウン選択肢マスタ・単価マスタの管理</div>
+          <div class="sub">プルダウン選択肢マスタ・標準基準価格マスタの管理</div>
         </div>
         <div class="admin-user">
           <span>ログイン中：<strong>向井 美咲</strong>（価格管理担当）</span>
@@ -472,12 +472,12 @@
 
       <div class="admin-main">
         <div class="notice">
-          この管理画面で登録した内容は、ブラウザ内（このデバイス）に保存されます。見積画面の算出ロジックは本デモの対象外のため、ここでの変更は算出結果には反映されません。
+          この管理画面で登録した内容は、見積画面の標準価格算出にそのまま反映されます（見積画面：標準ベース価格 = 標準基準価格 × サイズ係数 × 用紙係数 × 色数係数 × 部数係数 × 加工係数 × 納期係数）。標準基準価格（単価マスタ）は印刷物種別ごとに編集できますが、各係数は本デモでは固定値のため、新しく追加したプルダウン選択肢の係数は標準値（×1.0）として計算されます。登録内容はブラウザ内（このデバイス）に保存されます。
         </div>
 
         <div class="tabs" role="tablist">
           <button class="tab-btn active" id="tab-btn-pulldown" role="tab" aria-selected="true" aria-controls="tab-panel-pulldown" type="button">プルダウン選択肢マスタ</button>
-          <button class="tab-btn" id="tab-btn-price" role="tab" aria-selected="false" aria-controls="tab-panel-price" type="button">単価マスタ</button>
+          <button class="tab-btn" id="tab-btn-price" role="tab" aria-selected="false" aria-controls="tab-panel-price" type="button">標準基準価格マスタ</button>
         </div>
 
         <!-- プルダウン選択肢マスタ -->
@@ -525,21 +525,34 @@
         <div class="tab-panel" id="tab-panel-price" role="tabpanel">
           <div class="card">
             <div class="card-header">
-              <h2>基準単価（1部あたり）の修正</h2>
+              <h2>標準基準価格の追加・修正</h2>
             </div>
             <div class="card-body">
               <div class="table-wrap">
                 <table>
                   <thead>
                     <tr>
-                      <th>品目</th>
-                      <th class="col-right">基準単価</th>
+                      <th>品目（印刷物種別）</th>
+                      <th class="col-right">標準基準価格</th>
                       <th class="col-actions">操作</th>
                     </tr>
                   </thead>
                   <tbody id="price-tbody"></tbody>
                 </table>
               </div>
+
+              <form class="add-form" id="add-price-form" novalidate>
+                <div class="form-error" id="add-price-error" role="alert"></div>
+                <div class="field">
+                  <label class="field-label" for="add-price-name">品目名</label>
+                  <input type="text" id="add-price-name" class="text-input" placeholder="例）ポスター" />
+                </div>
+                <div class="field">
+                  <label class="field-label" for="add-price-value">標準基準価格</label>
+                  <input type="number" min="1" step="1" id="add-price-value" class="text-input" placeholder="例）120000" />
+                </div>
+                <button type="submit" class="btn btn-primary">＋ 品目を追加</button>
+              </form>
             </div>
           </div>
         </div>
@@ -611,6 +624,7 @@
           { key: 'color',       label: '色数',         valueType: 'text' },
           { key: 'quantity',    label: '部数',         valueType: 'number' },
           { key: 'process',     label: '加工',         valueType: 'text' },
+          { key: 'delivery',    label: '希望納期',     valueType: 'text' },
           { key: 'expenseRate', label: '営業経費率',   valueType: 'number' }
         ];
 
@@ -655,6 +669,11 @@
               { label: '中綴じ', value: '中綴じ' },
               { label: '断裁', value: '断裁' }
             ],
+            delivery: [
+              { label: '通常', value: '通常' },
+              { label: '短納期（+15%）', value: '短納期' },
+              { label: '特急（+35%）', value: '特急' }
+            ],
             expenseRate: [
               { label: '10%', value: 10 },
               { label: '15%', value: 15 },
@@ -662,11 +681,11 @@
             ]
           },
           priceMaster: [
-            { id: 'PT-001', name: 'チラシ', unitPrice: 18 },
-            { id: 'PT-002', name: 'パンフレット', unitPrice: 55 },
-            { id: 'PT-003', name: '名刺', unitPrice: 35 },
-            { id: 'PT-004', name: '封筒', unitPrice: 22 },
-            { id: 'PT-005', name: '冊子', unitPrice: 180 }
+            { id: 'PT-001', name: 'チラシ', unitPrice: 150000 },
+            { id: 'PT-002', name: 'パンフレット', unitPrice: 280000 },
+            { id: 'PT-003', name: '名刺', unitPrice: 55000 },
+            { id: 'PT-004', name: '封筒', unitPrice: 110000 },
+            { id: 'PT-005', name: '冊子', unitPrice: 380000 }
           ]
         };
 
@@ -697,7 +716,7 @@
 
         /* ═══════════════════ ユーティリティ ═══════════════════ */
         function fmtYen(n) {
-          return '¥' + Number(n).toLocaleString('ja-JP');
+          return Number(n).toLocaleString('ja-JP') + '円';
         }
 
         function escapeHtml(str) {
@@ -912,6 +931,55 @@
           }).join('');
         }
 
+        function nextPriceId() {
+          var max = 0;
+          data.priceMaster.forEach(function (item) {
+            var n = parseInt(String(item.id).replace(/[^0-9]/g, ''), 10);
+            if (!isNaN(n) && n > max) max = n;
+          });
+          return 'PT-' + String(max + 1).padStart(3, '0');
+        }
+
+        function handleAddPrice(e) {
+          e.preventDefault();
+          var nameInput = document.getElementById('add-price-name');
+          var valueInput = document.getElementById('add-price-value');
+          var errorBox = document.getElementById('add-price-error');
+          var name = nameInput.value.trim();
+
+          if (name === '') {
+            errorBox.textContent = '品目名を入力してください';
+            errorBox.classList.add('show');
+            nameInput.focus();
+            return;
+          }
+
+          var exists = data.priceMaster.filter(function (p) { return p.name === name; }).length > 0;
+          if (exists) {
+            errorBox.textContent = '「' + name + '」は既に登録されています';
+            errorBox.classList.add('show');
+            nameInput.focus();
+            return;
+          }
+
+          var value = Number(valueInput.value);
+          if (!isFinite(value) || value < 1 || Math.floor(value) !== value) {
+            errorBox.textContent = '標準基準価格は1円以上の整数で入力してください';
+            errorBox.classList.add('show');
+            valueInput.focus();
+            return;
+          }
+
+          errorBox.classList.remove('show');
+          data.priceMaster.push({ id: nextPriceId(), name: name, unitPrice: value });
+          saveData(data);
+          renderPriceTable();
+          nameInput.value = '';
+          valueInput.value = '';
+          nameInput.focus();
+          showToast('「' + name + '」を追加しました');
+        }
+
         function handlePriceTableClick(e) {
           var btn = e.target.closest ? e.target.closest('button[data-action]') : null;
           if (!btn) return;
@@ -947,7 +1015,7 @@
             saveData(data);
             editingPriceId = null;
             renderPriceTable();
-            showToast('「' + item.name + '」の基準単価を更新しました');
+            showToast('「' + item.name + '」の標準基準価格を更新しました');
           }
         }
 
@@ -991,6 +1059,7 @@
           document.getElementById('add-option-form').addEventListener('submit', handleAddOption);
           document.getElementById('option-tbody').addEventListener('click', handleOptionTableClick);
           document.getElementById('price-tbody').addEventListener('click', handlePriceTableClick);
+          document.getElementById('add-price-form').addEventListener('submit', handleAddPrice);
 
           document.getElementById('logout-btn').addEventListener('click', function () {
             sessionStorage.removeItem(AUTH_KEY);
