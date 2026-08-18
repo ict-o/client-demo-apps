@@ -508,7 +508,7 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
             <dt>契約相手先</dt>
             <dd>{req.counterparty}　御中</dd>
             <dt>契約当事者</dt>
-            <dd>株式会社ミナトエステートパートナーズ</dd>
+            <dd>株式会社〇〇エステートパートナーズ</dd>
             <dt>対象物件</dt>
             <dd>{req.property && req.property !== '' ? req.property : '—'}</dd>
             <dt>契約金額</dt>

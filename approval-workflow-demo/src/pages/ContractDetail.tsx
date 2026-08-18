@@ -229,7 +229,7 @@ export function ContractDetail({ contracts, requests, actions }: ContractDetailP
             <dt>契約相手先</dt>
             <dd>{contract.counterparty}　御中</dd>
             <dt>契約当事者</dt>
-            <dd>株式会社ミナトエステートパートナーズ</dd>
+            <dd>株式会社〇〇エステートパートナーズ</dd>
             <dt>対象物件</dt>
             <dd>{contract.property !== '' ? contract.property : '—'}</dd>
             <dt>契約金額</dt>
