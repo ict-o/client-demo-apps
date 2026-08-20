@@ -29,6 +29,8 @@ import { AUDIT_SOURCES, documentHash, isInProgress } from './utils/esign';
 import { Layout } from './components/Layout';
 import { ToastContainer, type ToastState } from './components/Toast';
 import { Tour, WelcomeDialog } from './components/Tour';
+import type { TourCourse } from './components/Tour';
+import { shortTourSteps, tourSteps } from './data/guide';
 import { Dashboard } from './pages/Dashboard';
 import { RequestList } from './pages/RequestList';
 import { RequestNew } from './pages/RequestNew';
@@ -141,7 +143,17 @@ export default function App() {
   const [viewerId, setViewerId] = useState<string>(DEFAULT_VIEWER_ID);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [tourIndex, setTourIndex] = useState<number | null>(null);
+  const [tourCourse, setTourCourse] = useState<TourCourse>('full');
   const [welcomeOpen, setWelcomeOpen] = useState(true);
+  const [helpVisible, setHelpVisible] = useState(true);
+
+  const activeTourSteps = tourCourse === 'short' ? shortTourSteps : tourSteps;
+
+  const startTour = useCallback((course: TourCourse) => {
+    setTourCourse(course);
+    setWelcomeOpen(false);
+    setTourIndex(0);
+  }, []);
 
   const viewer = useMemo(
     () => members.find(m => m.id === viewerId) ?? members[0],
@@ -856,10 +868,9 @@ export default function App() {
         onChangeViewer={setViewerId}
         myPendingCount={myPendingCount}
         esignPendingCount={esignPendingCount}
-        onStartTour={() => {
-          setWelcomeOpen(false);
-          setTourIndex(0);
-        }}
+        onStartTour={() => startTour('full')}
+        helpVisible={helpVisible}
+        onToggleHelp={() => setHelpVisible(v => !v)}
       >
         <Routes>
           <Route
@@ -915,26 +926,39 @@ export default function App() {
             path="/integrations"
             element={<Integrations contracts={contracts} jobs={accountingJobs} actions={actions} />}
           />
-          <Route path="/guide" element={<Guide onStartTour={() => setTourIndex(0)} />} />
+          <Route
+            path="/guide"
+            element={
+              <Guide
+                onStartTour={startTour}
+                helpVisible={helpVisible}
+                onToggleHelp={() => setHelpVisible(v => !v)}
+              />
+            }
+          />
           <Route path="/settings" element={<RouteSettings members={members} requests={requests} actions={actions} />} />
         </Routes>
       </Layout>
 
       {welcomeOpen && tourIndex === null && (
         <WelcomeDialog
-          onStartTour={() => {
-            setWelcomeOpen(false);
-            setTourIndex(0);
-          }}
+          onStartTour={startTour}
           onOpenGuide={() => {
             setWelcomeOpen(false);
             window.location.hash = '#/guide';
           }}
           onClose={() => setWelcomeOpen(false)}
+          fullCount={tourSteps.length}
+          shortCount={shortTourSteps.length}
         />
       )}
 
-      <Tour index={tourIndex} onChangeIndex={setTourIndex} onClose={() => setTourIndex(null)} />
+      <Tour
+        steps={activeTourSteps}
+        index={tourIndex}
+        onChangeIndex={setTourIndex}
+        onClose={() => setTourIndex(null)}
+      />
       <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </HashRouter>
   );

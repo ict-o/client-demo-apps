@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { tourSteps } from '../data/guide';
+import { useLocation, useNavigate } from 'react-router-dom';
+import type { TourStep } from '../data/guide';
+
+export type TourCourse = 'full' | 'short';
 
 interface TourProps {
+  /** 表示するステップ（コースによって変わる） */
+  steps: TourStep[];
   /** 現在のステップ番号（0始まり）。null のときツアーは非表示 */
   index: number | null;
   onChangeIndex: (next: number) => void;
@@ -20,10 +24,11 @@ interface Rect {
  * ガイド付きツアー。ステップごとに該当画面へ移動し、
  * data-tour 属性の付いた要素をスポットライトで強調する。
  */
-export function Tour({ index, onChangeIndex, onClose }: TourProps) {
+export function Tour({ steps, index, onChangeIndex, onClose }: TourProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [rect, setRect] = useState<Rect | null>(null);
-  const step = index === null ? null : tourSteps[index];
+  const step = index === null ? null : steps[index];
 
   // ステップが変わったら該当画面へ移動する
   useEffect(() => {
@@ -77,7 +82,9 @@ export function Tour({ index, onChangeIndex, onClose }: TourProps) {
   if (index === null || !step) return null;
 
   const isFirst = index === 0;
-  const isLast = index === tourSteps.length - 1;
+  const isLast = index === steps.length - 1;
+  const currentPath = `${location.pathname}${location.search}`;
+  const strayed = currentPath !== step.path;
 
   return (
     <>
@@ -92,23 +99,43 @@ export function Tour({ index, onChangeIndex, onClose }: TourProps) {
       <div className="tour-panel" role="dialog" aria-modal="false" aria-label="ガイド付きツアー">
         <div className="tour-head">
           <span className="tour-count">
-            ステップ {index + 1} / {tourSteps.length}
+            ステップ {index + 1} / {steps.length}
           </span>
           <button className="tour-close" onClick={onClose} aria-label="ガイド付きツアーを終了する">
-            終了
+            終了する
           </button>
         </div>
         <div className="tour-progress" aria-hidden="true">
-          <span style={{ width: `${((index + 1) / tourSteps.length) * 100}%` }} />
+          <span style={{ width: `${((index + 1) / steps.length) * 100}%` }} />
         </div>
+
         <h2 className="tour-title">{step.title}</h2>
         <p className="tour-body">{step.body}</p>
-        {step.hint && (
-          <p className="tour-hint">
-            <strong>試せる操作</strong>
-            {step.hint}
+
+        {step.dos && step.dos.length > 0 && (
+          <div className="tour-dos">
+            <div className="tour-dos-head">このステップで見るところ・押すところ</div>
+            <ul>
+              {step.dos.map(d => (
+                <li key={d}>{d}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {step.term && (
+          <p className="tour-term">
+            <strong>「{step.term.word}」とは</strong>
+            {step.term.mean}
           </p>
         )}
+
+        {strayed && (
+          <button className="btn btn-ghost btn-sm tour-back" onClick={() => navigate(step.path)}>
+            案内している画面に戻る
+          </button>
+        )}
+
         <div className="tour-actions">
           <button className="btn btn-secondary btn-sm" onClick={() => onChangeIndex(index - 1)} disabled={isFirst}>
             戻る
@@ -119,7 +146,7 @@ export function Tour({ index, onChangeIndex, onClose }: TourProps) {
             </button>
           ) : (
             <button className="btn btn-primary btn-sm" onClick={() => onChangeIndex(index + 1)}>
-              次へ
+              次へ進む
             </button>
           )}
         </div>
@@ -129,36 +156,42 @@ export function Tour({ index, onChangeIndex, onClose }: TourProps) {
 }
 
 interface WelcomeProps {
-  onStartTour: () => void;
+  onStartTour: (course: TourCourse) => void;
   onOpenGuide: () => void;
   onClose: () => void;
+  /** 各コースのステップ数 */
+  fullCount: number;
+  shortCount: number;
 }
 
 /** 初回表示の案内（ツアーを始めるか、自分で操作するかを選ぶ） */
-export function WelcomeDialog({ onStartTour, onOpenGuide, onClose }: WelcomeProps) {
+export function WelcomeDialog({ onStartTour, onOpenGuide, onClose, fullCount, shortCount }: WelcomeProps) {
   return (
     <div className="welcome-overlay" role="dialog" aria-modal="true" aria-label="デモの操作案内">
       <div className="welcome-card">
         <div className="welcome-eyebrow">デモンストレーション</div>
         <h2 className="welcome-title">承認ワークフロー・電子契約管理システム</h2>
         <p className="welcome-lead">
-          申請 → 多段階承認（代理承認）→ 電子契約での締結 → 契約書管理 → 会計システム連携までを、実際に操作しながら確認できます。
-          はじめての方は、画面を案内するガイド付きツアー（約5分）からどうぞ。
+          申請 → 承認（不在のときは代理承認）→ 電子契約での締結 → 契約書の保管 → 会計システムへの連携までを、
+          実際に操作しながら確認できます。パソコンの操作に不安がある方でも、案内のとおりに押していけば進められます。
         </p>
         <ul className="welcome-list">
-          <li>表示されている企業名・担当者名・金額はすべて架空のサンプルです</li>
-          <li>操作内容はブラウザのメモリ内だけで保持され、再読み込みで初期状態に戻ります</li>
-          <li>外部システムとの連携は会計システムのみです</li>
+          <li>表示されている会社名・担当者名・金額はすべて架空のサンプルです</li>
+          <li>操作した内容は保存されません。画面を再読み込みすると最初の状態に戻ります</li>
+          <li>外部のシステムとつながるのは会計システムだけです</li>
         </ul>
         <div className="welcome-actions">
-          <button className="btn btn-primary btn-lg" onClick={onStartTour}>
-            ガイド付きツアーを始める（約5分）
+          <button className="btn btn-primary btn-lg" onClick={() => onStartTour('full')}>
+            はじめての方向け：詳しい案内（全{fullCount}ステップ・約8分）
+          </button>
+          <button className="btn btn-secondary btn-lg" onClick={() => onStartTour('short')}>
+            要点だけ：短い案内（全{shortCount}ステップ・約5分）
           </button>
           <button className="btn btn-secondary btn-lg" onClick={onOpenGuide}>
-            操作ガイドを読む
+            文章で読む：操作ガイドを開く
           </button>
           <button className="btn btn-ghost btn-lg" onClick={onClose}>
-            自分で操作する
+            案内なしで自分で操作する
           </button>
         </div>
       </div>

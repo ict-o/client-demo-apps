@@ -1229,33 +1229,61 @@ button.kpi:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
   font-weight: 700;
 }
 .accordion-body { padding: 4px 18px 20px; border-top: 1px solid var(--border); }
-.guide-steps { list-style: none; counter-reset: guide; }
+.guide-steps { list-style: none; }
 .guide-steps li {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 9px 0;
+  gap: 12px;
+  padding: 12px 0;
   border-bottom: 1px dashed var(--border);
   font-size: 13px;
   line-height: 1.8;
 }
 .guide-steps li:last-child { border-bottom: none; }
-.guide-no {
-  width: 22px;
-  height: 22px;
+.guide-steps li.done .guide-text { color: var(--text-sub); text-decoration: line-through; }
+.guide-check {
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: var(--accent-light);
-  color: var(--accent-dark);
-  font-size: 11.5px;
+  border: 2px solid var(--border-strong);
+  background: var(--card);
+  color: var(--text-sub);
+  font-size: 12.5px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 3px;
+  margin-top: 2px;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-.guide-text { flex: 1 1 260px; }
+/* 見た目は小さくてもタップ領域は44px相当を確保する */
+.guide-check::after { content: ''; position: absolute; inset: -7px; }
+.guide-check:hover { border-color: var(--accent); color: var(--accent-dark); }
+.guide-check.on { background: var(--success); border-color: var(--success); color: #fff; }
+.guide-main { flex: 1 1 auto; min-width: 0; }
+.guide-text { font-size: 13.5px; }
+.guide-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-sub);
+  margin-top: 5px;
+  line-height: 1.7;
+}
+.guide-tag {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  background: var(--accent-light);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  margin-top: 2px;
+}
+.guide-tag.ok { color: var(--success); background: var(--success-light); }
 .point-list { margin-left: 18px; font-size: 13px; line-height: 1.9; }
 
 /* ===== ガイド付きツアー ===== */
@@ -1376,4 +1404,127 @@ table.data.compact th, table.data.compact td { padding: 8px 10px; }
   .doc-field { min-width: 104px; padding: 5px 8px 6px; }
   .doc-field-value { font-size: 13px; }
   .sign-preview-name { font-size: 20px; }
+}
+
+
+/* ===== 画面ごとの「かんたん説明」 ===== */
+.help-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-light);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+.help-icn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.help-body { flex: 1 1 auto; min-width: 0; }
+.help-title { font-size: 13px; font-weight: 700; color: var(--accent-dark); margin-bottom: 5px; }
+.help-lines { margin: 0 0 0 18px; font-size: 12.5px; line-height: 1.85; }
+.help-next {
+  margin-top: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--accent-light);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+}
+.help-hide {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-sub);
+  font-size: 12px;
+  padding: 8px 12px;
+  min-height: 44px;
+  white-space: nowrap;
+}
+.help-hide:hover { border-color: var(--accent); color: var(--accent-dark); background: var(--card); }
+
+/* ===== ツアーの補足表示 ===== */
+.tour-dos {
+  margin-top: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.tour-dos-head { font-size: 11.5px; font-weight: 700; color: var(--accent-dark); margin-bottom: 5px; }
+.tour-dos ul { margin: 0 0 0 16px; padding: 0; }
+.tour-dos li { font-size: 12px; line-height: 1.75; margin-bottom: 3px; }
+.tour-dos li:last-child { margin-bottom: 0; }
+.tour-term {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.75;
+  background: var(--warning-light);
+  border: 1px solid #EBD9AE;
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+}
+.tour-term strong { display: block; margin-bottom: 2px; }
+.tour-back { margin-top: 10px; }
+
+/* ===== 操作ガイド: 進め方の選択と用語集 ===== */
+.guide-choice { display: flex; flex-direction: column; gap: 14px; }
+.guide-choice-item {
+  display: flex;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  background: var(--card);
+}
+.guide-choice-no {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.guide-choice-main { flex: 1 1 auto; min-width: 0; }
+.guide-choice-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.guide-choice-desc { font-size: 12.5px; line-height: 1.85; color: var(--text-sub); }
+
+.glossary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+.glossary-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  background: var(--card);
+}
+.glossary-item dt { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; }
+.glossary-read { font-size: 11.5px; font-weight: 400; color: var(--text-sub); }
+.glossary-item dd { font-size: 12.5px; line-height: 1.85; color: var(--text-sub); }
+
+@media (max-width: 860px) {
+  .help-note { flex-wrap: wrap; }
+  .help-hide { width: 100%; }
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { Member } from '../types';
 import { OPERATING_COMPANY } from '../data/sampleData';
+import { HelpNote } from './HelpNote';
 
 interface LayoutProps {
   members: Member[];
@@ -13,6 +14,9 @@ interface LayoutProps {
   esignPendingCount: number;
   /** ガイド付きツアーを開始する */
   onStartTour: () => void;
+  /** 画面ごとの「かんたん説明」を表示するか */
+  helpVisible: boolean;
+  onToggleHelp: () => void;
   children: React.ReactNode;
 }
 
@@ -34,6 +38,8 @@ export function Layout({
   myPendingCount,
   esignPendingCount,
   onStartTour,
+  helpVisible,
+  onToggleHelp,
   children,
 }: LayoutProps) {
   const navigate = useNavigate();
@@ -55,8 +61,15 @@ export function Layout({
           </button>
 
           <div className="header-right">
+            <button
+              className={`btn btn-sm tour-start${helpVisible ? ' btn-secondary' : ' btn-ghost'}`}
+              onClick={onToggleHelp}
+              aria-pressed={helpVisible}
+            >
+              かんたん説明: {helpVisible ? '表示中' : '非表示'}
+            </button>
             <button className="btn btn-secondary btn-sm tour-start" onClick={onStartTour}>
-              操作ガイド（ツアー）
+              使い方の案内を見る
             </button>
             <label className="viewer-switch" data-tour="viewer-switch">
               <span className="viewer-switch-label">利用者</span>
@@ -79,7 +92,7 @@ export function Layout({
         </div>
 
         <div className="app-nav-wrap">
-          <nav className="app-nav" aria-label="メインメニュー">
+          <nav className="app-nav" aria-label="メインメニュー" data-tour="nav">
             {NAV.map(item => (
               <button
                 key={item.path}
@@ -103,7 +116,10 @@ export function Layout({
         </div>
       </header>
 
-      <main className="app-main">{children}</main>
+      <main className="app-main">
+        <HelpNote pathname={pathname} visible={helpVisible} onHide={onToggleHelp} />
+        {children}
+      </main>
 
       <footer className="app-footer">
         本画面はデモンストレーション用です。表示されている企業名・担当者名・物件名・金額・契約内容はすべて架空のサンプルです。

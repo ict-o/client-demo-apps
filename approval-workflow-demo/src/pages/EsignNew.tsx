@@ -231,7 +231,7 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
         </div>
       </div>
 
-      <ol className="wizard-steps">
+      <ol className="wizard-steps" data-tour="wizard">
         {STEP_LABELS.map(s => (
           <li key={s.no} className={`wizard-step${step === s.no ? ' current' : ''}${step > s.no ? ' done' : ''}`}>
             <span className="wizard-no">{step > s.no ? '✓' : s.no}</span>

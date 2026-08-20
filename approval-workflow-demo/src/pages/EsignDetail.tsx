@@ -372,7 +372,7 @@ export function EsignDetail({ envelopes, viewer, company, actions }: EsignDetail
             </div>
           </section>
 
-          <section className="card card-pad">
+          <section className="card card-pad" data-tour="audit-log">
             <div className="section-title">
               <span className="bar" />
               監査ログ

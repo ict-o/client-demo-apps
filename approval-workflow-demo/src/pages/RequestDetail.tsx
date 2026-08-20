@@ -139,7 +139,7 @@ export function RequestDetail({ requests, members, viewer, envelopes, actions }:
 
       <div className="two-col">
         <div className="stack gap-12">
-          <section className="card card-pad">
+          <section className="card card-pad" data-tour="request-info">
             <div className="section-title">
               <span className="bar" />
               申請内容
@@ -191,7 +191,7 @@ export function RequestDetail({ requests, members, viewer, envelopes, actions }:
             <ApprovalSteps steps={req.steps} members={members} />
 
             {req.status === 'pending' && (
-              <div className="mt-16">
+              <div className="mt-16" data-tour="approve-actions">
                 <div className="divider" />
                 {act.ok ? (
                   <>

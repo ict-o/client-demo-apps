@@ -104,7 +104,7 @@ export function ContractDetail({ contracts, requests, envelopes, actions }: Cont
 
       <div className="two-col">
         <div className="stack gap-12">
-          <section className="card card-pad">
+          <section className="card card-pad" data-tour="contract-main">
             <div className="section-title">
               <span className="bar" />
               契約の主要項目
