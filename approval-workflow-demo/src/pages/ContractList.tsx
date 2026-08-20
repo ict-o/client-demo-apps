@@ -62,7 +62,7 @@ export function ContractList({ contracts }: ContractListProps) {
         </button>
       </div>
 
-      <div className="filter-bar">
+      <div className="filter-bar" data-tour="contract-search">
         <div className="search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <circle cx="11" cy="11" r="7" />

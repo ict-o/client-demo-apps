@@ -1,20 +1,22 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Contract, Member, Request } from '../types';
+import type { Contract, Envelope, Member, Request } from '../types';
 import { monthlyVolume } from '../data/sampleData';
 import { Badge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
 import { canAct, contractPhase, contractPhaseMeta, currentStep, stagnantDays } from '../utils/domain';
+import { deadlineDays, envelopeStatusMeta, isInProgress, nextSigner, signProgress } from '../utils/esign';
 import { daysUntil, formatDate, formatYen } from '../utils/format';
 
 interface DashboardProps {
   requests: Request[];
   contracts: Contract[];
+  envelopes: Envelope[];
   members: Member[];
   viewer: Member;
 }
 
-export function Dashboard({ requests, contracts, members, viewer }: DashboardProps) {
+export function Dashboard({ requests, contracts, envelopes, members, viewer }: DashboardProps) {
   const navigate = useNavigate();
 
   const pending = useMemo(() => requests.filter(r => r.status === 'pending'), [requests]);
@@ -31,6 +33,11 @@ export function Dashboard({ requests, contracts, members, viewer }: DashboardPro
     [contracts],
   );
   const absentMembers = useMemo(() => members.filter(m => m.absent), [members]);
+  const signing = useMemo(
+    () => envelopes.filter(isInProgress).sort((a, b) => a.deadline.localeCompare(b.deadline)),
+    [envelopes],
+  );
+  const signingOurTurn = useMemo(() => signing.filter(e => nextSigner(e)?.side === 'internal'), [signing]);
 
   const pendingSorted = useMemo(
     () => [...pending].sort((a, b) => stagnantDays(b) - stagnantDays(a)),
@@ -76,7 +83,7 @@ export function Dashboard({ requests, contracts, members, viewer }: DashboardPro
         </div>
       )}
 
-      <div className="kpi-row">
+      <div className="kpi-row" data-tour="kpi">
         <button className="kpi accent-info" onClick={() => navigate('/requests')} style={{ textAlign: 'left' }}>
           <div className="kpi-label">自分が承認する申請</div>
           <div className="kpi-value">
@@ -98,6 +105,14 @@ export function Dashboard({ requests, contracts, members, viewer }: DashboardPro
             <span className="kpi-unit">件</span>
           </div>
         </div>
+        <button className="kpi accent-accent" onClick={() => navigate('/esign')} style={{ textAlign: 'left' }}>
+          <div className="kpi-label">電子契約 署名待ち</div>
+          <div className="kpi-value">
+            {signing.length}
+            <span className="kpi-unit">件</span>
+          </div>
+          <div className="kpi-note">うち当社の署名待ち {signingOurTurn.length} 件</div>
+        </button>
         <div className="kpi accent-warning">
           <div className="kpi-label">更新期限60日以内の契約</div>
           <div className={`kpi-value${expiring.length > 0 ? ' warning' : ''}`}>
@@ -179,6 +194,43 @@ export function Dashboard({ requests, contracts, members, viewer }: DashboardPro
           )}
         </section>
       </div>
+
+      <section className="card card-pad mt-20">
+        <div className="section-title">
+          <span className="bar" />
+          電子契約の進行状況（署名期限が近い順）
+        </div>
+        {signing.length === 0 ? (
+          <EmptyState
+            title="署名待ちの電子契約はありません"
+            desc="承認が完了した申請から電子契約を送信すると、ここに進捗が表示されます。"
+          />
+        ) : (
+          <div className="stack gap-10">
+            {signing.map(e => {
+              const rest = deadlineDays(e);
+              const prog = signProgress(e);
+              const next = nextSigner(e);
+              const sm = envelopeStatusMeta(e.status);
+              return (
+                <button key={e.id} className="mini-case" onClick={() => navigate(`/esign/${e.id}`)}>
+                  <span className="row gap-8 wrap">
+                    <Badge tone={rest < 0 ? 'error' : sm.tone} label={rest < 0 ? '期限超過' : sm.label} />
+                    <span className="fs-12 text-muted">{e.code}</span>
+                    {next?.side === 'internal' && <Badge tone="warning" label="当社の署名待ち" />}
+                  </span>
+                  <span className="fs-13 fw-600">{e.title}</span>
+                  <span className="fs-12 text-sub">
+                    {e.counterparty}／{prog.signed}/{prog.total} 名署名済／次は {next?.name ?? '—'}／期限{' '}
+                    {formatDate(e.deadline)}
+                    {rest >= 0 ? `（あと${rest}日）` : `（${-rest}日超過）`}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       <section className="card card-pad mt-20">
         <div className="section-title">

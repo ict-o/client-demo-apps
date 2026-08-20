@@ -12,13 +12,14 @@ interface RequestListProps {
   viewer: Member;
 }
 
-type StatusFilter = 'all' | 'mine' | 'pending' | 'approved' | 'completed' | 'rejected';
+type StatusFilter = 'all' | 'mine' | 'pending' | 'approved' | 'signing' | 'completed' | 'rejected';
 
 const STATUS_TABS: { key: StatusFilter; label: string }[] = [
   { key: 'all', label: 'すべて' },
   { key: 'mine', label: '自分の承認待ち' },
   { key: 'pending', label: '承認待ち' },
   { key: 'approved', label: '承認済（締結待ち）' },
+  { key: 'signing', label: '電子契約 署名手続き中' },
   { key: 'completed', label: '締結完了' },
   { key: 'rejected', label: '差戻し' },
 ];
@@ -93,7 +94,7 @@ export function RequestList({ requests, members, viewer }: RequestListProps) {
           <EmptyState title="該当する申請はありません" desc="検索条件・絞り込みを変更してお試しください。" />
         </div>
       ) : (
-        <div className="table-wrap">
+        <div className="table-wrap" data-tour="request-list">
           <table className="data">
             <thead>
               <tr>

@@ -1,24 +1,27 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { Contract, Request } from '../types';
+import type { Contract, Envelope, Request } from '../types';
 import type { AppActions } from '../App';
 import { Badge } from '../components/Badge';
 import { Modal } from '../components/Modal';
 import { EmptyState } from '../components/EmptyState';
 import { contractPhase, contractPhaseMeta } from '../utils/domain';
-import { daysUntil, formatDate, formatYen } from '../utils/format';
+import { accountingFieldMap } from '../data/sampleData';
+import { daysUntil, formatDate, formatDateTime, formatYen } from '../utils/format';
 
 interface ContractDetailProps {
   contracts: Contract[];
   requests: Request[];
+  envelopes: Envelope[];
   actions: AppActions;
 }
 
-export function ContractDetail({ contracts, requests, actions }: ContractDetailProps) {
+export function ContractDetail({ contracts, requests, envelopes, actions }: ContractDetailProps) {
   const { id } = useParams();
   const navigate = useNavigate();
   const contract = contracts.find(c => c.id === id);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
 
   if (!contract) {
     return (
@@ -36,6 +39,7 @@ export function ContractDetail({ contracts, requests, actions }: ContractDetailP
   const meta = contractPhaseMeta(contractPhase(contract));
   const rest = daysUntil(contract.endDate);
   const source = requests.find(r => r.code === contract.sourceRequestCode);
+  const envelope = envelopes.find(e => e.code === contract.envelopeCode);
 
   const renewRequest = () => {
     const nextStart = contract.endDate;
@@ -157,33 +161,83 @@ export function ContractDetail({ contracts, requests, actions }: ContractDetailP
             </div>
           </section>
 
-          <section className="card card-pad">
+          <section className="card card-pad" data-tour="accounting-panel">
             <div className="section-title">
               <span className="bar" />
-              会計システム連携
+              会計システム連携（外部連携）
             </div>
             <p className="fs-13 text-sub mb-12">
               契約金額・賃料・支払期間を会計システムへ連携し、支払データの二重入力をなくします。
+              本システムが外部システムと接続するのは、この会計システム連携だけです。
             </p>
-            <div className="row gap-12 wrap">
+            <div className="row gap-12 wrap mb-12">
               <Badge
                 tone={contract.accounting === 'linked' ? 'success' : 'muted'}
                 label={contract.accounting === 'linked' ? '連携済' : '未連携'}
               />
+              {contract.accounting === 'linked' && contract.accountingJobCode && (
+                <span className="fs-12 text-sub">
+                  連携番号 {contract.accountingJobCode}
+                  {contract.accountingLinkedAt && `／${formatDateTime(contract.accountingLinkedAt)}`}
+                </span>
+              )}
+            </div>
+            <div className="row gap-10 wrap">
+              <button className="btn btn-secondary btn-sm" onClick={() => setLinkOpen(true)}>
+                連携内容を確認する
+              </button>
               {contract.accounting === 'linked' ? (
-                <button className="btn btn-secondary btn-sm" disabled title="この契約はすでに会計システムへ連携済みです">
-                  会計システムへ連携する
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => actions.linkAccounting(contract.id, '更新')}
+                >
+                  内容を再連携する
                 </button>
               ) : (
-                <button className="btn btn-primary btn-sm" onClick={() => actions.linkAccounting(contract.id)}>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => actions.linkAccounting(contract.id, '新規登録')}
+                >
                   会計システムへ連携する
                 </button>
               )}
+              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/integrations')}>
+                連携履歴を開く
+              </button>
             </div>
           </section>
         </div>
 
         <div className="stack gap-12">
+          <section className="card card-pad">
+            <div className="section-title">
+              <span className="bar" />
+              締結方法
+            </div>
+            {envelope ? (
+              <>
+                <div className="row gap-8 wrap mb-8">
+                  <span className="tag">電子契約</span>
+                  <span className="tag">{envelope.code}</span>
+                </div>
+                <p className="fs-13 text-sub mb-12">
+                  {envelope.completedAt && `${formatDateTime(envelope.completedAt)} に`}
+                  {envelope.signers.map(sg => sg.name).join(' さん・')} さんの電子署名により締結しました。
+                  合意締結証明書と監査ログを確認できます。
+                </p>
+                <button className="btn btn-secondary btn-block" onClick={() => navigate(`/esign/${envelope.id}`)}>
+                  電子契約の締結情報を開く
+                </button>
+              </>
+            ) : (
+              <p className="fs-13 text-sub">
+                {contract.origin === 'esign'
+                  ? 'この契約書は電子契約で締結されました。'
+                  : '捺印済の原本をスキャンして登録した契約書です。原本は書庫で保管します。'}
+              </p>
+            )}
+          </section>
+
           <section className="card card-pad">
             <div className="section-title">
               <span className="bar" />
@@ -219,6 +273,75 @@ export function ContractDetail({ contracts, requests, actions }: ContractDetailP
           </section>
         </div>
       </div>
+
+      <Modal
+        isOpen={linkOpen}
+        onClose={() => setLinkOpen(false)}
+        title="会計システムへ連携する内容"
+        width={620}
+        footer={
+          <>
+            <button className="btn btn-secondary" onClick={() => setLinkOpen(false)}>
+              閉じる
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                actions.linkAccounting(contract.id, contract.accounting === 'linked' ? '更新' : '新規登録');
+                setLinkOpen(false);
+              }}
+            >
+              この内容で連携する
+            </button>
+          </>
+        }
+      >
+        <p className="fs-13 mb-12">
+          次の項目を会計システムへ送信します。契約書の本文・添付ファイル・署名情報は送信しません。
+        </p>
+        <div className="table-wrap">
+          <table className="data compact">
+            <thead>
+              <tr>
+                <th>会計システムの項目</th>
+                <th>送信する値</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="fs-13">取引番号</td>
+                <td className="fs-13">{contract.code}</td>
+              </tr>
+              <tr>
+                <td className="fs-13">支払先マスタ</td>
+                <td className="fs-13">{contract.counterparty}</td>
+              </tr>
+              <tr>
+                <td className="fs-13">契約金額（税抜）</td>
+                <td className="fs-13 num">{formatYen(contract.amount)}</td>
+              </tr>
+              <tr>
+                <td className="fs-13">毎月の支払予定額</td>
+                <td className="fs-13 num">{contract.rentMonthly > 0 ? formatYen(contract.rentMonthly) : '—'}</td>
+              </tr>
+              <tr>
+                <td className="fs-13">支払期間</td>
+                <td className="fs-13">
+                  {formatDate(contract.startDate)} 〜 {formatDate(contract.endDate)}
+                </td>
+              </tr>
+              <tr>
+                <td className="fs-13">勘定科目</td>
+                <td className="fs-13">{contract.contractType === '賃貸借契約' ? '地代家賃' : '支払手数料'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div className="divider" />
+        <div className="fs-12 text-sub">
+          項目の対応: {accountingFieldMap.map(m => `${m.from}→${m.to}`).join('／')}
+        </div>
+      </Modal>
 
       <Modal isOpen={previewOpen} onClose={() => setPreviewOpen(false)} title="契約書プレビュー" width={620}>
         <div className="doc-preview">
