@@ -1,29 +1,30 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { Member, Request } from '../types';
+import type { Envelope, Member, Request } from '../types';
 import type { AppActions } from '../App';
 import { Badge } from '../components/Badge';
 import { Modal } from '../components/Modal';
 import { ApprovalSteps } from '../components/ApprovalSteps';
 import { EmptyState } from '../components/EmptyState';
 import { canAct, currentStep, requestStatusMeta, stagnantDays } from '../utils/domain';
+import { deadlineDays, envelopeStatusMeta, nextSigner, signProgress } from '../utils/esign';
 import { formatDate, formatDateTime, formatYen } from '../utils/format';
 
 interface RequestDetailProps {
   requests: Request[];
   members: Member[];
   viewer: Member;
+  envelopes: Envelope[];
   actions: AppActions;
 }
 
-export function RequestDetail({ requests, members, viewer, actions }: RequestDetailProps) {
+export function RequestDetail({ requests, members, viewer, envelopes, actions }: RequestDetailProps) {
   const { id } = useParams();
   const navigate = useNavigate();
   const req = requests.find(r => r.id === id);
 
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
-  const [esignOpen, setEsignOpen] = useState(false);
   const [sealOpen, setSealOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [comment, setComment] = useState('');
@@ -51,6 +52,7 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
   const applicant = members.find(m => m.id === req.applicantId);
   const sealHolder = members.find(m => m.holdsSeal);
   const days = stagnantDays(req);
+  const envelope = envelopes.find(e => e.id === req.envelopeId);
 
   const doApprove = () => {
     actions.approve(req.id, comment);
@@ -69,9 +71,8 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
     setRejectOpen(false);
   };
 
-  const doConclude = (method: 'esign' | 'paper') => {
-    const contractId = actions.conclude(req.id, method);
-    setEsignOpen(false);
+  const concludeOnPaper = () => {
+    const contractId = actions.concludeOnPaper(req.id);
     setSealOpen(false);
     setSealStage('request');
     if (contractId) navigate(`/contracts/${contractId}`);
@@ -117,6 +118,21 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
           <div>
             <strong>締結が完了しています。</strong>
             {req.sealMethod === 'esign' ? '電子契約で締結し' : '捺印済の原本をスキャン取込し'}、契約書管理に登録済みです。
+          </div>
+        </div>
+      )}
+
+      {req.status === 'signing' && envelope && (
+        <div className="banner warning">
+          <span aria-hidden="true">✎</span>
+          <div>
+            <strong>電子契約で署名手続き中です（{envelope.code}）。</strong>
+            {nextSigner(envelope)
+              ? `${nextSigner(envelope)?.name} さんの署名待ちです。`
+              : '署名状況を確認してください。'}
+            <button className="btn btn-ghost btn-sm mt-8" onClick={() => navigate(`/esign/${envelope.id}`)}>
+              署名状況を確認する
+            </button>
           </div>
         </div>
       )}
@@ -167,7 +183,7 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
             </div>
           </section>
 
-          <section className="card card-pad">
+          <section className="card card-pad" data-tour="approval-steps">
             <div className="section-title">
               <span className="bar" />
               承認ルート（{req.steps.length}段階）
@@ -213,7 +229,7 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
             )}
 
             {req.status === 'approved' && (
-              <div className="mt-16">
+              <div className="mt-16" data-tour="conclude">
                 <div className="divider" />
                 <div className="section-title">
                   <span className="bar" />
@@ -224,8 +240,11 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
                 </p>
                 <div className="row gap-10 wrap">
                   {req.counterpartyEsign ? (
-                    <button className="btn btn-primary btn-lg" onClick={() => setEsignOpen(true)}>
-                      電子契約で締結を依頼する
+                    <button
+                      className="btn btn-primary btn-lg"
+                      onClick={() => navigate(`/esign/new?requestId=${req.id}`)}
+                    >
+                      電子契約で締結する
                     </button>
                   ) : (
                     <button
@@ -233,18 +252,46 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
                       disabled
                       title="相手先が電子契約に対応していないため選択できません。紙での締結（捺印手配）に進んでください"
                     >
-                      電子契約で締結を依頼する
+                      電子契約で締結する
                     </button>
                   )}
                   <button className="btn btn-secondary btn-lg" onClick={() => setSealOpen(true)}>
                     紙で締結する（捺印手配）
                   </button>
                 </div>
-                {!req.counterpartyEsign && (
-                  <p className="fs-12 text-sub mt-8">
-                    相手先が電子契約に未対応のため、電子契約は選択できません。捺印手配から原本のスキャン取込まで進めてください。
-                  </p>
-                )}
+                <p className="fs-12 text-sub mt-8">
+                  {req.counterpartyEsign
+                    ? '「電子契約で締結する」を選ぶと、署名者・署名期限・署名欄を設定する送信準備画面へ進みます。'
+                    : '相手先が電子契約に未対応のため、電子契約は選択できません。捺印手配から原本のスキャン取込まで進めてください。'}
+                </p>
+              </div>
+            )}
+
+            {req.status === 'signing' && envelope && (
+              <div className="mt-16" data-tour="conclude">
+                <div className="divider" />
+                <div className="section-title">
+                  <span className="bar" />
+                  電子契約の署名状況
+                </div>
+                <div className="row gap-8 wrap mb-8">
+                  <span className="tag">{envelope.code}</span>
+                  <Badge tone={envelopeStatusMeta(envelope.status).tone} label={envelopeStatusMeta(envelope.status).label} />
+                </div>
+                <div className="progress mb-8">
+                  <span style={{ width: `${signProgress(envelope).percent}%` }} />
+                </div>
+                <p className="fs-13 text-sub mb-12">
+                  {signProgress(envelope).signed} / {signProgress(envelope).total} 名が署名済です。
+                  {nextSigner(envelope)
+                    ? `次は ${nextSigner(envelope)?.name} さん（${
+                        nextSigner(envelope)?.side === 'internal' ? '当社' : nextSigner(envelope)?.company
+                      }）の署名待ちで、署名期限まであと ${deadlineDays(envelope)} 日です。`
+                    : ''}
+                </p>
+                <button className="btn btn-primary btn-lg" onClick={() => navigate(`/esign/${envelope.id}`)}>
+                  電子契約の詳細を開く
+                </button>
               </div>
             )}
 
@@ -372,53 +419,6 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
       </Modal>
 
       <Modal
-        isOpen={esignOpen}
-        onClose={() => setEsignOpen(false)}
-        title="電子契約で締結を依頼する"
-        width={560}
-        footer={
-          <>
-            <button className="btn btn-secondary" onClick={() => setEsignOpen(false)}>
-              キャンセル
-            </button>
-            <button className="btn btn-primary" onClick={() => doConclude('esign')}>
-              送信して締結する
-            </button>
-          </>
-        }
-      >
-        <p className="fs-13 mb-12">
-          承認済の契約書を電子契約で送信します。締結が完了すると、契約書管理へ自動で登録されます。
-        </p>
-        <div className="info-grid">
-          <div className="info-item">
-            <div className="k">送信先</div>
-            <div className="v">{req.counterparty} 契約ご担当者</div>
-          </div>
-          <div className="info-item">
-            <div className="k">当社の締結者</div>
-            <div className="v">
-              {sealHolder?.name}（{sealHolder?.title}）
-            </div>
-          </div>
-          <div className="info-item">
-            <div className="k">契約書</div>
-            <div className="v">
-              {req.contractType}（{req.property && req.property !== '' ? req.property : req.title}）
-            </div>
-          </div>
-          <div className="info-item">
-            <div className="k">契約金額</div>
-            <div className="v">{formatYen(req.amount)}</div>
-          </div>
-        </div>
-        <div className="banner info mt-16" style={{ marginBottom: 0 }}>
-          <span aria-hidden="true">i</span>
-          <div>電子署名により、承認から締結までを紙の回覧・押印なしで完了できます。</div>
-        </div>
-      </Modal>
-
-      <Modal
         isOpen={sealOpen}
         onClose={() => {
           setSealOpen(false);
@@ -447,7 +447,7 @@ export function RequestDetail({ requests, members, viewer, actions }: RequestDet
               <button className="btn btn-secondary" onClick={() => setSealStage('request')}>
                 前に戻る
               </button>
-              <button className="btn btn-primary" onClick={() => doConclude('paper')}>
+              <button className="btn btn-primary" onClick={concludeOnPaper}>
                 スキャン取込して契約書を登録する
               </button>
             </>

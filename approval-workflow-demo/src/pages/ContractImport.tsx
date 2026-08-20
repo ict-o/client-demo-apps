@@ -99,7 +99,7 @@ export function ContractImport({ inbox, actions }: ContractImportProps) {
         endDate: draft.endDate,
         autoRenew: draft.autoRenew,
       },
-      selected.source === '電子契約サービス連携' ? 'esign' : 'scan',
+      'scan',
     );
     backToSelect();
     navigate(`/contracts/${id}`);
@@ -111,7 +111,7 @@ export function ContractImport({ inbox, actions }: ContractImportProps) {
         <div>
           <h1 className="page-title">契約書取込（AI項目抽出）</h1>
           <p className="page-sub">
-            複合機スキャン・メール添付・電子契約サービスから届いた契約書を取り込み、主要項目を自動で読み取って契約書管理へ登録します。
+            複合機スキャン・メール添付・郵送で届いた紙の契約書を取り込み、主要項目を自動で読み取って契約書管理へ登録します。電子契約で締結した契約書は自動登録されるため、取込は不要です。
           </p>
         </div>
         <button className="btn btn-ghost" onClick={() => navigate('/contracts')}>
@@ -121,7 +121,7 @@ export function ContractImport({ inbox, actions }: ContractImportProps) {
 
       {phase === 'select' && (
         <div className="two-col">
-          <section className="card card-pad">
+          <section className="card card-pad" data-tour="inbox-list">
             <div className="section-title">
               <span className="bar" />
               取込待ちのファイル（{inbox.length}件）
@@ -387,7 +387,7 @@ export function ContractImport({ inbox, actions }: ContractImportProps) {
             </div>
             <div className="info-item mt-12">
               <div className="k">原本の保管形態</div>
-              <div className="v">{selected.source === '電子契約サービス連携' ? '電子契約（電子署名済）' : 'スキャン原本'}</div>
+              <div className="v">スキャン原本（{selected.source}）</div>
             </div>
           </section>
         </div>

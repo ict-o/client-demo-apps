@@ -9,6 +9,8 @@ export function requestStatusMeta(status: RequestStatus): { label: string; tone:
       return { label: '承認待ち', tone: 'warning' };
     case 'approved':
       return { label: '承認済（締結待ち）', tone: 'info' };
+    case 'signing':
+      return { label: '電子契約 署名手続き中', tone: 'accent' };
     case 'completed':
       return { label: '締結完了', tone: 'success' };
     case 'rejected':

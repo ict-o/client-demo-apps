@@ -9,18 +9,33 @@ interface LayoutProps {
   onChangeViewer: (id: string) => void;
   /** 自分（または代理として）承認できる件数。ナビのバッジに出す */
   myPendingCount: number;
+  /** 署名手続き中の電子契約の件数。ナビのバッジに出す */
+  esignPendingCount: number;
+  /** ガイド付きツアーを開始する */
+  onStartTour: () => void;
   children: React.ReactNode;
 }
 
 const NAV = [
   { path: '/', label: 'ダッシュボード' },
   { path: '/requests', label: '申請一覧' },
+  { path: '/esign', label: '電子契約' },
   { path: '/contracts', label: '契約書管理' },
   { path: '/import', label: '契約書取込' },
+  { path: '/integrations', label: '外部連携' },
   { path: '/settings', label: '承認ルート設定' },
+  { path: '/guide', label: '操作ガイド' },
 ];
 
-export function Layout({ members, viewer, onChangeViewer, myPendingCount, children }: LayoutProps) {
+export function Layout({
+  members,
+  viewer,
+  onChangeViewer,
+  myPendingCount,
+  esignPendingCount,
+  onStartTour,
+  children,
+}: LayoutProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -40,7 +55,10 @@ export function Layout({ members, viewer, onChangeViewer, myPendingCount, childr
           </button>
 
           <div className="header-right">
-            <label className="viewer-switch">
+            <button className="btn btn-secondary btn-sm tour-start" onClick={onStartTour}>
+              操作ガイド（ツアー）
+            </button>
+            <label className="viewer-switch" data-tour="viewer-switch">
               <span className="viewer-switch-label">利用者</span>
               <select
                 className="select"
@@ -72,6 +90,11 @@ export function Layout({ members, viewer, onChangeViewer, myPendingCount, childr
                 {item.path === '/requests' && myPendingCount > 0 && (
                   <span className="nav-badge" aria-label={`自分の承認待ち ${myPendingCount} 件`}>
                     {myPendingCount}
+                  </span>
+                )}
+                {item.path === '/esign' && esignPendingCount > 0 && (
+                  <span className="nav-badge" aria-label={`署名手続き中の電子契約 ${esignPendingCount} 件`}>
+                    {esignPendingCount}
                   </span>
                 )}
               </button>
