@@ -74,24 +74,22 @@ export function stagnantDays(req: Request): number {
   return Math.max(0, -daysUntil(since.slice(0, 10)));
 }
 
-export type ContractPhase = 'expired' | 'expiring' | 'active';
+export type ContractPhase = 'expired' | 'active';
 
-/** 契約の期限状態（期限切れ / 60日以内 / 有効） */
+/**
+ * 契約のステータス（契約期間中 / 満了済）。
+ * 更新期限が近い契約の抽出とアラートはこのフェーズの対象外です。
+ */
 export function contractPhase(c: Contract): ContractPhase {
-  const rest = daysUntil(c.endDate);
-  if (rest < 0) return 'expired';
-  if (rest <= 60) return 'expiring';
-  return 'active';
+  return daysUntil(c.endDate) < 0 ? 'expired' : 'active';
 }
 
 export function contractPhaseMeta(phase: ContractPhase): { label: string; tone: string } {
   switch (phase) {
     case 'expired':
-      return { label: '期限切れ', tone: 'error' };
-    case 'expiring':
-      return { label: '更新期限が近い', tone: 'warning' };
+      return { label: '満了済', tone: 'muted' };
     case 'active':
-      return { label: '有効', tone: 'success' };
+      return { label: '契約期間中', tone: 'success' };
   }
 }
 

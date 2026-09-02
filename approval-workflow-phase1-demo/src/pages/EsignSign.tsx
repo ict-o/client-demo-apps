@@ -6,7 +6,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ContractDoc } from '../components/ContractDoc';
 import { SIGNATURE_FONTS } from '../utils/esign';
 import type { SignatureFontId } from '../utils/esign';
-import { formatDate, formatYen } from '../utils/format';
+import { formatYen } from '../utils/format';
 
 interface EsignSignProps {
   envelopes: Envelope[];
@@ -133,7 +133,6 @@ export function EsignSign({ envelopes, company, actions }: EsignSignProps) {
             <ul className="mail-list">
               <li>書類名: {env.title}</li>
               <li>契約金額: {formatYen(env.amount)}</li>
-              <li>署名期限: {formatDate(env.deadline)}</li>
             </ul>
           </div>
           <div className="row gap-10 wrap mt-16">
@@ -176,10 +175,6 @@ export function EsignSign({ envelopes, company, actions }: EsignSignProps) {
               <div className="info-item">
                 <div className="k">本人確認</div>
                 <div className="v">{signer.auth}</div>
-              </div>
-              <div className="info-item">
-                <div className="k">署名期限</div>
-                <div className="v">{formatDate(env.deadline)}</div>
               </div>
             </div>
             <div className="divider" />
