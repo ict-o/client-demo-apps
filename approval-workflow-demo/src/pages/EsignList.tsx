@@ -54,7 +54,7 @@ export function EsignList({ envelopes }: EsignListProps) {
     <div>
       <div className="page-head">
         <div>
-          <h1 className="page-title">電子契約</h1>
+          <h1 className="page-title">電子契約（締結・証跡・契約書保管）</h1>
           <p className="page-sub">
             承認が完了した契約を電子署名で締結します。署名依頼の送信・署名状況の確認・リマインド・締結証明までを本システム内で完結します。
           </p>

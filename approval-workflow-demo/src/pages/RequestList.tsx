@@ -48,8 +48,8 @@ export function RequestList({ requests, members, viewer }: RequestListProps) {
     <div>
       <div className="page-head">
         <div>
-          <h1 className="page-title">申請一覧（稟議書・捺印申請）</h1>
-          <p className="page-sub">申請の回覧状況を一覧で確認できます。行をクリックすると詳細と承認操作に進みます。</p>
+          <h1 className="page-title">社内ワークフロー（申請一覧）</h1>
+          <p className="page-sub">稟議書・捺印申請の回覧状況を一覧で確認できます。行をクリックすると詳細と承認操作に進みます。</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/requests/new')}>
           新規申請を作成

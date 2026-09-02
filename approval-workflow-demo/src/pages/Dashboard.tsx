@@ -52,7 +52,7 @@ export function Dashboard({ requests, contracts, envelopes, members, viewer }: D
     <div>
       <div className="page-head">
         <div>
-          <h1 className="page-title">ダッシュボード</h1>
+          <h1 className="page-title">管理ダッシュボード</h1>
           <p className="page-sub">
             {viewer.name} さん（{viewer.department} {viewer.title}）の承認待ちと、契約期限の状況をまとめて確認できます。
           </p>

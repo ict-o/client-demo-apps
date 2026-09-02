@@ -39,7 +39,7 @@ export function RouteSettings({ members, requests, actions }: RouteSettingsProps
     <div>
       <div className="page-head">
         <div>
-          <h1 className="page-title">承認ルート設定</h1>
+          <h1 className="page-title">承認ルート設定（多段階承認）</h1>
           <p className="page-sub">
             申請内容に応じた承認ルートの判定条件と、担当者不在時の代理承認設定を管理します。設定はその場で反映されます。
           </p>

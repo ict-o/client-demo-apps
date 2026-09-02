@@ -207,7 +207,7 @@ export function RequestNew({ members, actions }: RequestNewProps) {
               </label>
               <input id="f-property" className="input" value={form.property} onChange={e => set('property', e.target.value)} />
               <span className="fs-12 text-sub mt-4" style={{ display: 'block' }}>
-                建物名・部屋番号・面積など。契約書管理の検索対象になります。
+                建物名・部屋番号・面積など。契約台帳の検索対象になります。
               </span>
             </div>
 
@@ -309,7 +309,7 @@ export function RequestNew({ members, actions }: RequestNewProps) {
                 ) : (
                   <>
                     <strong>紙の契約書での締結になります。</strong>
-                    承認完了後は代表取締役への捺印手配へ進み、捺印済の原本をスキャン取込して契約書管理に登録します。
+                    承認完了後は代表取締役への捺印手配へ進み、捺印済の原本をスキャン取込して契約台帳に登録します。
                   </>
                 )}
               </div>

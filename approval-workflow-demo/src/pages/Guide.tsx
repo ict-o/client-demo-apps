@@ -7,15 +7,57 @@ interface GuideProps {
   onStartTour: () => void;
 }
 
-const SCREENS: { path: string; name: string; can: string }[] = [
-  { path: '/', name: 'ダッシュボード', can: '承認待ち・滞留・契約期限・電子化率をまとめて確認する' },
-  { path: '/requests', name: '申請一覧・申請詳細', can: '稟議書と捺印申請を確認し、多段階承認・代理承認・差戻しを行う' },
-  { path: '/requests/new', name: '新規申請', can: '申請内容を入力し、承認ルートの自動判定をその場で確認する' },
-  { path: '/esign', name: '電子契約', can: '署名依頼の送信、署名状況の確認、リマインド、締結証明の発行を行う' },
-  { path: '/contracts', name: '契約書管理', can: '締結した契約書を検索・並び替えし、期限と更新を管理する' },
-  { path: '/import', name: '契約書取込', can: '紙で届いた契約書をAIで項目抽出し、自動振り分けして登録する' },
-  { path: '/integrations', name: '外部連携', can: '会計システムへの連携状況・履歴・連携項目を確認する' },
-  { path: '/settings', name: '承認ルート設定', can: '承認ルートの条件、不在・代理承認者の設定、ルートのシミュレーション' },
+const SCREENS: { path: string; name: string; can: string; estimate: string }[] = [
+  {
+    path: '/',
+    name: '管理ダッシュボード',
+    can: '承認待ち・滞留・契約期限・電子化率をまとめて確認する',
+    estimate: '管理ダッシュボード・集計機能（フェーズ3）',
+  },
+  {
+    path: '/requests',
+    name: '社内ワークフロー（申請一覧・申請詳細）',
+    can: '稟議書と捺印申請を確認し、多段階承認・代理承認・差戻しを行う',
+    estimate: '社内ワークフロー機能（フェーズ1）',
+  },
+  {
+    path: '/requests/new',
+    name: '新規申請の作成',
+    can: '申請内容を入力し、承認ルートの自動判定をその場で確認する',
+    estimate: '社内ワークフロー機能（フェーズ1）',
+  },
+  {
+    path: '/esign',
+    name: '電子契約',
+    can: '署名依頼の送信、署名状況の確認、リマインド、締結証明の発行を行う',
+    estimate: '電子契約基本機能（フェーズ1）／電子契約拡張機能・監査ログ・証跡（フェーズ2）',
+  },
+  {
+    path: '/contracts',
+    name: '契約台帳',
+    can: '締結した契約書を検索・並び替えし、期限と更新を管理する',
+    estimate:
+      '契約台帳・基本検索／紙・電子契約の一元管理（フェーズ1）、高度な全文検索（フェーズ2）、契約更新・期限管理・アラート強化（フェーズ3）',
+  },
+  {
+    path: '/import',
+    name: '紙契約書取込',
+    can: '紙で届いた契約書をOCR・AIで項目抽出し、自動振り分けして登録する',
+    estimate:
+      '紙契約書のPDF登録・ドキュメント管理（フェーズ1）、OCR読み取り・AIによる主要項目の自動抽出・自動振り分け（フェーズ2）',
+  },
+  {
+    path: '/integrations',
+    name: '会計システム連携',
+    can: '会計システムへの連携状況・履歴・連携項目を確認する',
+    estimate: '会計システム連携（フェーズ1）／追加外部システム連携・運用改善（フェーズ3）',
+  },
+  {
+    path: '/settings',
+    name: '承認ルート設定',
+    can: '承認ルートの条件、不在・代理承認者の設定、ルートのシミュレーション',
+    estimate: '内容に応じた承認ルート設定＋多段階承認（フェーズ1）／ワークフロー追加・運用ルール拡張（フェーズ3）',
+  },
 ];
 
 export function Guide({ onStartTour }: GuideProps) {
@@ -43,9 +85,12 @@ export function Guide({ onStartTour }: GuideProps) {
         </div>
         <p className="fs-13 mb-12">
           紙とハンコで行っている月間100〜150件の承認業務を電子化し、
-          <strong>申請 → 多段階承認（不在時は代理承認）→ 電子契約での締結 → 契約書の一元管理 → 会計システム連携</strong>
+          <strong>申請 → 多段階承認（不在時は代理承認）→ 電子契約での締結 → 契約台帳での一元管理 → 会計システム連携</strong>
           までを1つのシステムで完結させる想定の業務システムです。
           電子契約は本システム内で完結し、外部システムとの連携は会計システムのみです。
+        </p>
+        <p className="fs-13 text-sub mb-12">
+          各画面が、お見積りのどの機能項目にあたるかを右の列に記載しています。
         </p>
         <div className="table-wrap">
           <table className="data">
@@ -53,16 +98,18 @@ export function Guide({ onStartTour }: GuideProps) {
               <tr>
                 <th>画面</th>
                 <th>できること</th>
+                <th>対応する見積項目</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody>
               {SCREENS.map(s => (
                 <tr key={s.path}>
-                  <td className="fw-600" style={{ whiteSpace: 'nowrap' }}>
+                  <td className="fw-600" style={{ minWidth: '9em' }}>
                     {s.name}
                   </td>
                   <td className="fs-13">{s.can}</td>
+                  <td className="fs-13 text-sub">{s.estimate}</td>
                   <td>
                     <button className="btn btn-secondary btn-sm" onClick={() => navigate(s.path)}>
                       この画面を開く

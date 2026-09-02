@@ -52,13 +52,13 @@ export function ContractList({ contracts }: ContractListProps) {
     <div>
       <div className="page-head">
         <div>
-          <h1 className="page-title">契約書管理</h1>
+          <h1 className="page-title">契約台帳（紙／電子契約の一元管理）</h1>
           <p className="page-sub">
             ワークフローで締結した契約書と、スキャン取込した紙の契約書を一元管理します。相手先・物件・契約種別で検索できます。
           </p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/import')}>
-          契約書を取り込む
+          紙契約書を取り込む
         </button>
       </div>
 
