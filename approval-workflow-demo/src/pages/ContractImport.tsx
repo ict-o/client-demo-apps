@@ -109,13 +109,13 @@ export function ContractImport({ inbox, actions }: ContractImportProps) {
     <div>
       <div className="page-head">
         <div>
-          <h1 className="page-title">契約書取込（AI項目抽出）</h1>
+          <h1 className="page-title">紙契約書取込（OCR読み取り・AI項目抽出）</h1>
           <p className="page-sub">
-            複合機スキャン・メール添付・郵送で届いた紙の契約書を取り込み、主要項目を自動で読み取って契約書管理へ登録します。電子契約で締結した契約書は自動登録されるため、取込は不要です。
+            複合機スキャン・メール添付・郵送で届いた紙の契約書を取り込み、主要項目を自動で読み取って契約台帳へ登録します。電子契約で締結した契約書は自動登録されるため、取込は不要です。
           </p>
         </div>
         <button className="btn btn-ghost" onClick={() => navigate('/contracts')}>
-          契約書管理へ戻る
+          契約台帳へ戻る
         </button>
       </div>
 

@@ -166,7 +166,7 @@ export function EsignDetail({ envelopes, viewer, company, actions }: EsignDetail
           <span aria-hidden="true">✔</span>
           <div>
             <strong>締結が完了しています。</strong>
-            {env.completedAt && `${formatDateTime(env.completedAt)} に全署名が完了し、`}契約書管理へ登録済みです。
+            {env.completedAt && `${formatDateTime(env.completedAt)} に全署名が完了し、`}契約台帳へ登録済みです。
           </div>
         </div>
       )}

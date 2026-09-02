@@ -31,7 +31,7 @@ export function Integrations({ contracts, jobs, actions }: IntegrationsProps) {
     <div>
       <div className="page-head">
         <div>
-          <h1 className="page-title">外部連携</h1>
+          <h1 className="page-title">会計システム連携</h1>
           <p className="page-sub">
             本システムが外部システムと接続するのは会計システムのみです。契約金額・賃料・支払期間を連携し、支払データの二重入力をなくします。
           </p>

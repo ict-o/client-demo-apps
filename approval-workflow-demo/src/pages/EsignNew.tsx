@@ -655,7 +655,7 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
         </div>
         <div className="banner info mt-16" style={{ marginBottom: 0 }}>
           <span aria-hidden="true">i</span>
-          <div>送信後、署名の状況は電子契約の詳細画面で確認できます。全員の署名が完了すると契約書管理へ自動登録されます。</div>
+          <div>送信後、署名の状況は電子契約の詳細画面で確認できます。全員の署名が完了すると契約台帳へ自動登録されます。</div>
         </div>
       </Modal>
     </div>

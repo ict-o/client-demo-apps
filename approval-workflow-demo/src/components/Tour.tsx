@@ -142,7 +142,7 @@ export function WelcomeDialog({ onStartTour, onOpenGuide, onClose }: WelcomeProp
         <div className="welcome-eyebrow">デモンストレーション</div>
         <h2 className="welcome-title">承認ワークフロー・電子契約管理システム</h2>
         <p className="welcome-lead">
-          申請 → 多段階承認（代理承認）→ 電子契約での締結 → 契約書管理 → 会計システム連携までを、実際に操作しながら確認できます。
+          申請 → 多段階承認（代理承認）→ 電子契約での締結 → 契約台帳 → 会計システム連携までを、実際に操作しながら確認できます。
           はじめての方は、画面を案内するガイド付きツアー（約5分）からどうぞ。
         </p>
         <ul className="welcome-list">

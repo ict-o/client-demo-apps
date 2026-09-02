@@ -117,7 +117,7 @@ export function RequestDetail({ requests, members, viewer, envelopes, actions }:
           <span aria-hidden="true">✔</span>
           <div>
             <strong>締結が完了しています。</strong>
-            {req.sealMethod === 'esign' ? '電子契約で締結し' : '捺印済の原本をスキャン取込し'}、契約書管理に登録済みです。
+            {req.sealMethod === 'esign' ? '電子契約で締結し' : '捺印済の原本をスキャン取込し'}、契約台帳に登録済みです。
           </div>
         </div>
       )}
@@ -482,7 +482,7 @@ export function RequestDetail({ requests, members, viewer, envelopes, actions }:
               <span aria-hidden="true">✔</span>
               <div>
                 <strong>捺印が完了しました。</strong>
-                捺印済の原本をスキャンして取り込むと、AI が契約の主要項目を読み取り、契約書管理へ登録します。
+                捺印済の原本をスキャンして取り込むと、AI が契約の主要項目を読み取り、契約台帳へ登録します。
               </div>
             </div>
             <div className="info-grid">

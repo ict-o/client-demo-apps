@@ -17,12 +17,12 @@ interface LayoutProps {
 }
 
 const NAV = [
-  { path: '/', label: 'ダッシュボード' },
-  { path: '/requests', label: '申請一覧' },
+  { path: '/', label: '管理ダッシュボード' },
+  { path: '/requests', label: '社内ワークフロー' },
   { path: '/esign', label: '電子契約' },
-  { path: '/contracts', label: '契約書管理' },
-  { path: '/import', label: '契約書取込' },
-  { path: '/integrations', label: '外部連携' },
+  { path: '/contracts', label: '契約台帳' },
+  { path: '/import', label: '紙契約書取込' },
+  { path: '/integrations', label: '会計システム連携' },
   { path: '/settings', label: '承認ルート設定' },
   { path: '/guide', label: '操作ガイド' },
 ];
@@ -46,7 +46,7 @@ export function Layout({
     <div className="app-shell">
       <header className="app-header">
         <div className="app-header-inner">
-          <button onClick={() => navigate('/')} aria-label="ダッシュボードへ移動" className="brand">
+          <button onClick={() => navigate('/')} aria-label="管理ダッシュボードへ移動" className="brand">
             <BrandMark />
             <span className="brand-text">
               <span className="brand-name">承認ワークフロー・電子契約管理システム</span>

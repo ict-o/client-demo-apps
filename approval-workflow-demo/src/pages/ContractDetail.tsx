@@ -26,10 +26,10 @@ export function ContractDetail({ contracts, requests, envelopes, actions }: Cont
   if (!contract) {
     return (
       <div className="card">
-        <EmptyState title="契約書が見つかりません" desc="契約書管理の一覧から選び直してください。" />
+        <EmptyState title="契約書が見つかりません" desc="契約台帳の一覧から選び直してください。" />
         <div className="row" style={{ justifyContent: 'center', paddingBottom: '24px' }}>
           <button className="btn btn-secondary" onClick={() => navigate('/contracts')}>
-            契約書管理へ戻る
+            契約台帳へ戻る
           </button>
         </div>
       </div>
@@ -63,7 +63,7 @@ export function ContractDetail({ contracts, requests, envelopes, actions }: Cont
   return (
     <div>
       <button className="btn btn-ghost btn-sm mb-12" onClick={() => navigate('/contracts')}>
-        ← 契約書管理へ戻る
+        ← 契約台帳へ戻る
       </button>
 
       <div className="page-head">

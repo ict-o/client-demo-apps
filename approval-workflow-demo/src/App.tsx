@@ -519,7 +519,7 @@ export default function App() {
           id: nextId('au'),
           at,
           actor: '本システム',
-          action: `契約書 ${newContract.code} として契約書管理へ登録しました`,
+          action: `契約書 ${newContract.code} として契約台帳へ登録しました`,
           ip: AUDIT_SOURCES.system.ip,
           device: AUDIT_SOURCES.system.device,
         });

@@ -573,7 +573,7 @@ export const sampleInbox: InboxFile[] = [
   },
 ];
 
-/** 月次の処理件数（ダッシュボードの推移グラフ用・架空の実績値） */
+/** 月次の処理件数（管理ダッシュボードの推移グラフ用・架空の実績値） */
 export const monthlyVolume: { month: string; paper: number; digital: number }[] = [
   { month: '3月', paper: 138, digital: 0 },
   { month: '4月', paper: 145, digital: 0 },
@@ -814,7 +814,7 @@ export const sampleEnvelopes: Envelope[] = [
       { id: 'au402', at: '2026-07-30T17:22:00+09:00', actor: '芦田 真澄（株式会社〇〇空調）', action: '署名しました（メール認証）', ip: '198.51.100.66', device: '相手先 / iPhone・Safari' },
       { id: 'au403', at: '2026-07-31T09:05:00+09:00', actor: '皆川 隆之（代表取締役）', action: '署名しました（メール認証）', ip: '203.0.113.24', device: '社内ネットワーク / Windows・Chrome' },
       { id: 'au404', at: '2026-07-31T09:05:00+09:00', actor: '本システム', action: '全署名が完了し、締結を確定しました（タイムスタンプ付与）', ip: '203.0.113.10', device: '本システム（自動処理）' },
-      { id: 'au405', at: '2026-07-31T09:05:00+09:00', actor: '本システム', action: '契約書 CT-2026-0087 として契約書管理へ登録しました', ip: '203.0.113.10', device: '本システム（自動処理）' },
+      { id: 'au405', at: '2026-07-31T09:05:00+09:00', actor: '本システム', action: '契約書 CT-2026-0087 として契約台帳へ登録しました', ip: '203.0.113.10', device: '本システム（自動処理）' },
     ],
   },
   {
