@@ -30,7 +30,6 @@ import { documentHash, isInProgress } from './utils/esign';
 import { Layout } from './components/Layout';
 import { ToastContainer, type ToastState } from './components/Toast';
 import { Tour, WelcomeDialog } from './components/Tour';
-import { Dashboard } from './pages/Dashboard';
 import { RequestList } from './pages/RequestList';
 import { RequestNew } from './pages/RequestNew';
 import { RequestDetail } from './pages/RequestDetail';
@@ -100,7 +99,6 @@ export interface EnvelopeDraft {
   autoRenew: boolean;
   signers: Signer[];
   fields: SignField[];
-  deadline: string;
 }
 
 export interface AppActions {
@@ -396,14 +394,13 @@ export default function App() {
         signers: draft.signers.map(s => ({ ...s, status: s.id === first?.id ? 'current' : 'waiting' })),
         fields: draft.fields,
         sentAt: nowIso(),
-        deadline: draft.deadline,
         documentHash: documentHash(`${code}|${draft.counterparty}|${draft.amount}|${draft.startDate}`),
         audit: [
           {
             id: nextId('au'),
             at: nowIso(),
             actor: viewer.name,
-            action: `署名依頼を送信しました（署名者${draft.signers.length}名・署名期限 ${formatDate(draft.deadline)}）`,
+            action: `署名依頼を送信しました（署名者${draft.signers.length}名）`,
           },
         ],
       };
@@ -673,18 +670,7 @@ export default function App() {
         }}
       >
         <Routes>
-          <Route
-            path="/"
-            element={
-              <Dashboard
-                requests={requests}
-                contracts={contracts}
-                envelopes={envelopes}
-                members={members}
-                viewer={viewer}
-              />
-            }
-          />
+          <Route path="/" element={<RequestList requests={requests} members={members} viewer={viewer} />} />
           <Route path="/requests" element={<RequestList requests={requests} members={members} viewer={viewer} />} />
           <Route path="/requests/new" element={<RequestNew members={members} viewer={viewer} actions={actions} />} />
           <Route
@@ -736,7 +722,7 @@ export default function App() {
           />
           <Route path="/users" element={<UserAdmin members={members} viewer={viewer} actions={actions} />} />
           <Route path="/guide" element={<Guide onStartTour={() => setTourIndex(0)} />} />
-          <Route path="/settings" element={<RouteSettings members={members} requests={requests} />} />
+          <Route path="/settings" element={<RouteSettings members={members} requests={requests} viewer={viewer} />} />
         </Routes>
       </Layout>
 

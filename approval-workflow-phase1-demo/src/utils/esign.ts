@@ -1,7 +1,6 @@
 // 電子契約（締結案件）まわりの判定・表示ヘルパー
 
 import type { Envelope, EnvelopeStatus, Signer, SignerStatus } from '../types';
-import { daysUntil, todayIso } from './format';
 
 export function envelopeStatusMeta(status: EnvelopeStatus): { label: string; tone: string } {
   switch (status) {
@@ -41,29 +40,6 @@ export function signProgress(env: Envelope): { signed: number; total: number; pe
   const total = env.signers.length;
   const signed = env.signers.filter(s => s.status === 'signed').length;
   return { signed, total, percent: total === 0 ? 0 : Math.round((signed / total) * 100) };
-}
-
-/** 署名期限までの残り日数（進行中の案件のみ意味を持つ） */
-export function deadlineDays(env: Envelope): number {
-  return daysUntil(env.deadline);
-}
-
-/** 期限が切れている進行中案件か（画面表示で期限切れ扱いにする） */
-export function isOverdue(env: Envelope): boolean {
-  return isInProgress(env) && deadlineDays(env) < 0;
-}
-
-/** YYYY-MM-DD に日数を加算する */
-export function addDays(base: string, days: number): string {
-  const [y, m, d] = base.split('-').map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d + days));
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
-}
-
-/** 既定の署名期限（今日から7日後） */
-export function defaultDeadline(): string {
-  return addDays(todayIso(), 7);
 }
 
 /**

@@ -148,7 +148,7 @@ export function WelcomeDialog({ onStartTour, onOpenGuide, onClose }: WelcomeProp
         <ul className="welcome-list">
           <li>表示されている企業名・担当者名・金額はすべて架空のサンプルです</li>
           <li>操作内容はブラウザのメモリ内だけで保持され、再読み込みで初期状態に戻ります</li>
-          <li>フェーズ1の機能範囲に絞ったデモです。外部システムとの連携は会計システム（CSV）のみです</li>
+          <li>フェーズ1の機能範囲に絞ったデモです。フェーズ2・3の機能は「操作ガイド」に一覧で掲載しています</li>
         </ul>
         <div className="welcome-actions">
           <button className="btn btn-primary btn-lg" onClick={onStartTour}>

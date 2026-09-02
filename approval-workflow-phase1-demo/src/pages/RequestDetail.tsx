@@ -7,7 +7,7 @@ import { Modal } from '../components/Modal';
 import { ApprovalSteps } from '../components/ApprovalSteps';
 import { EmptyState } from '../components/EmptyState';
 import { canAct, currentStep, requestStatusMeta, stagnantDays } from '../utils/domain';
-import { deadlineDays, envelopeStatusMeta, nextSigner, signProgress } from '../utils/esign';
+import { envelopeStatusMeta, nextSigner, signProgress } from '../utils/esign';
 import { formatDate, formatDateTime, formatYen } from '../utils/format';
 
 interface RequestDetailProps {
@@ -252,7 +252,7 @@ export function RequestDetail({ requests, members, viewer, envelopes, actions }:
                 </div>
                 <p className="fs-12 text-sub mt-8">
                   {req.counterpartyEsign
-                    ? '「電子契約で締結する」を選ぶと、署名者・署名期限・署名欄を設定する送信準備画面へ進みます。'
+                    ? '「電子契約で締結する」を選ぶと、署名者を設定する送信準備画面へ進みます。'
                     : '相手先が電子契約に未対応のため、電子契約は選択できません。捺印手配から原本のスキャン取込まで進めてください。'}
                 </p>
               </div>
@@ -277,7 +277,7 @@ export function RequestDetail({ requests, members, viewer, envelopes, actions }:
                   {nextSigner(envelope)
                     ? `次は ${nextSigner(envelope)?.name} さん（${
                         nextSigner(envelope)?.side === 'internal' ? '当社' : nextSigner(envelope)?.company
-                      }）の署名待ちで、署名期限まであと ${deadlineDays(envelope)} 日です。`
+                      }）の署名待ちです。`
                     : ''}
                 </p>
                 <button className="btn btn-primary btn-lg" onClick={() => navigate(`/esign/${envelope.id}`)}>
@@ -478,14 +478,12 @@ export function RequestDetail({ requests, members, viewer, envelopes, actions }:
             </div>
             <div className="info-grid">
               <div className="info-item">
-                <div className="k">読み取る主要項目</div>
+                <div className="k">登録する主要項目</div>
                 <div className="v">相手先企業名・契約種別・物件情報・賃料・契約期間</div>
               </div>
               <div className="info-item">
-                <div className="k">自動振り分け先</div>
-                <div className="v">
-                  {req.contractType}／{req.counterparty}
-                </div>
+                <div className="k">保管フォルダ</div>
+                <div className="v">{req.contractType}／締結済</div>
               </div>
             </div>
           </>

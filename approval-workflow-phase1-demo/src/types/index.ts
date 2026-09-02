@@ -191,7 +191,7 @@ export interface Signer {
   email: string;
   title: string;
   side: SignerSide;
-  /** 署名順（1から） */
+  /** 署名順（1: 相手先 → 2: 当社 で固定。署名順の指定はフェーズ2の対象） */
   order: number;
   status: SignerStatus;
   signedAt?: string;
@@ -244,8 +244,6 @@ export interface Envelope {
   fields: SignField[];
   /** 送信日時 */
   sentAt: string;
-  /** 署名期限（YYYY-MM-DD） */
-  deadline: string;
   /** 全署名が完了した日時 */
   completedAt?: string;
   /** 書類のハッシュ値（改ざん検知用。デモ用に生成した値） */

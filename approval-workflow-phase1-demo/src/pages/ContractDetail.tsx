@@ -7,7 +7,7 @@ import { Modal } from '../components/Modal';
 import { EmptyState } from '../components/EmptyState';
 import { canApproveByRole, contractPhase, contractPhaseMeta } from '../utils/domain';
 import { accountingFieldMap } from '../data/sampleData';
-import { daysUntil, formatDate, formatDateTime, formatYen } from '../utils/format';
+import { formatDate, formatDateTime, formatYen } from '../utils/format';
 
 interface ContractDetailProps {
   viewer: Member;
@@ -38,28 +38,8 @@ export function ContractDetail({ viewer, contracts, requests, envelopes, actions
   }
 
   const meta = contractPhaseMeta(contractPhase(contract));
-  const rest = daysUntil(contract.endDate);
   const source = requests.find(r => r.code === contract.sourceRequestCode);
   const envelope = envelopes.find(e => e.code === contract.envelopeCode);
-
-  const renewRequest = () => {
-    const nextStart = contract.endDate;
-    navigate('/requests/new', {
-      state: {
-        kind: 'ringi',
-        title: `${contract.title}の更新`,
-        purpose: `${contract.counterparty} との${contract.contractType}が ${formatDate(contract.endDate)} に満了するため、契約を更新したい。`,
-        amount: String(contract.amount),
-        contractType: contract.contractType,
-        counterparty: contract.counterparty,
-        counterpartyEsign: contract.origin === 'esign' ? 'yes' : 'no',
-        property: contract.property,
-        rentMonthly: contract.rentMonthly > 0 ? String(contract.rentMonthly) : '',
-        startDate: nextStart,
-        endDate: '',
-      },
-    });
-  };
 
   return (
     <div>
@@ -83,24 +63,6 @@ export function ContractDetail({ viewer, contracts, requests, envelopes, actions
           契約書プレビューを表示
         </button>
       </div>
-
-      {rest <= 60 && (
-        <div className={`banner ${rest < 0 ? 'error' : 'warning'}`}>
-          <span aria-hidden="true">!</span>
-          <div>
-            {rest < 0 ? (
-              <>
-                <strong>契約期限を {-rest} 日超過しています。</strong>更新または終了の手続きを行ってください。
-              </>
-            ) : (
-              <>
-                <strong>契約満了まであと {rest} 日です。</strong>
-                {contract.autoRenew ? '自動更新条項があります。更新しない場合は通知期限に注意してください。' : '更新する場合は更新稟議を起票してください。'}
-              </>
-            )}
-          </div>
-        </div>
-      )}
 
       <div className="two-col">
         <div className="stack gap-12">
@@ -136,10 +98,7 @@ export function ContractDetail({ viewer, contracts, requests, envelopes, actions
               </div>
               <div className="info-item">
                 <div className="k">契約満了日</div>
-                <div className="v">
-                  {formatDate(contract.endDate)}
-                  {rest >= 0 ? `（あと${rest}日）` : `（${-rest}日超過）`}
-                </div>
+                <div className="v">{formatDate(contract.endDate)}</div>
               </div>
               <div className="info-item">
                 <div className="k">自動更新</div>
@@ -256,18 +215,6 @@ export function ContractDetail({ viewer, contracts, requests, envelopes, actions
             )}
           </section>
 
-          <section className="card card-pad">
-            <div className="section-title">
-              <span className="bar" />
-              更新手続き
-            </div>
-            <p className="fs-13 text-sub mb-12">
-              契約内容を引き継いだ状態で更新稟議を起票します。承認ルートは更新後の金額に応じて自動判定されます。
-            </p>
-            <button className="btn btn-primary btn-block" onClick={renewRequest}>
-              この契約の更新稟議を起票する
-            </button>
-          </section>
         </div>
       </div>
 

@@ -22,7 +22,6 @@ interface LayoutProps {
 const ADMIN_ONLY = ['/users', '/settings'];
 
 const NAV = [
-  { path: '/', label: 'ダッシュボード' },
   { path: '/requests', label: '申請一覧' },
   { path: '/esign', label: '電子契約' },
   { path: '/contracts', label: '契約書管理' },
@@ -47,13 +46,15 @@ export function Layout({
   const { pathname } = useLocation();
 
   const isActive = (path: string) =>
-    path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
+    path === '/requests'
+      ? pathname === '/' || pathname === path || pathname.startsWith(`${path}/`)
+      : pathname === path || pathname.startsWith(`${path}/`);
 
   return (
     <div className="app-shell">
       <header className="app-header">
         <div className="app-header-inner">
-          <button onClick={() => navigate('/')} aria-label="ダッシュボードへ移動" className="brand">
+          <button onClick={() => navigate('/requests')} aria-label="申請一覧へ移動" className="brand">
             <BrandMark />
             <span className="brand-text">
               <span className="brand-name">契約ワークフロー管理システム</span>

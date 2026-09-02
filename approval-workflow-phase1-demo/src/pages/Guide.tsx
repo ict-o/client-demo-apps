@@ -8,24 +8,29 @@ interface GuideProps {
 }
 
 const SCREENS: { path: string; name: string; can: string }[] = [
-  { path: '/', name: 'ダッシュボード', can: '承認待ち・滞留・契約期限・電子化率をまとめて確認する' },
-  { path: '/requests', name: '申請一覧・申請詳細', can: '稟議書と捺印申請を確認し、多段階承認・差戻しを行う' },
+  { path: '/requests', name: '申請一覧・申請詳細', can: '稟議書と捺印申請を確認し、多段階承認・差戻しを行う（ログイン後の最初の画面）' },
   { path: '/requests/new', name: '新規申請', can: '申請内容を入力し、承認ルートの自動判定をその場で確認する' },
-  { path: '/esign', name: '電子契約', can: '署名依頼の送信、署名状況の確認、締結証明の発行を行う' },
-  { path: '/contracts', name: '契約書管理', can: '紙・電子の契約書を検索・並び替えし、期限と更新を管理する' },
+  { path: '/esign', name: '電子契約', can: '署名依頼の送信、署名状況の確認、締結と締結証明の発行を行う' },
+  { path: '/contracts', name: '契約書管理', can: '紙・電子の契約書を1つの台帳で検索・並び替えし、契約期間中か満了済かを管理する' },
   { path: '/register', name: '紙契約書の登録', can: '受領した契約書PDFに契約情報を入力して契約台帳へ登録する' },
   { path: '/accounting', name: '会計システム連携', can: '契約金額・賃料をCSVに出力し、出力履歴を確認する' },
   { path: '/users', name: '利用者・権限管理', can: '利用者の権限とアカウントの有効・無効、組織を管理する（管理者のみ）' },
   { path: '/settings', name: '承認ルート設定', can: '承認ルートの条件確認とシミュレーション（管理者のみ）' },
 ];
 
-/** フェーズ1に含めていない機能（次フェーズの対象） */
-const OUT_OF_SCOPE: { name: string; note: string }[] = [
-  { name: '承認者不在時の代理承認', note: '不在設定と代理承認者への自動引き継ぎ' },
-  { name: '契約書のAI項目抽出・自動振り分け', note: 'PDFからの主要項目の自動読み取りと保管先の自動決定' },
-  { name: '署名リマインド・期限延長・送信取消', note: '署名が滞ったときの自動督促と再送' },
-  { name: 'IPアドレス等を含む監査ログ', note: 'アクセス元の記録を含む詳細な監査証跡' },
-  { name: '会計システムとのAPI連携', note: 'CSVを介さない自動連携とエラー時の再連携' },
+/** フェーズ1に含めていない機能（フェーズ2・3の対象） */
+const OUT_OF_SCOPE: { name: string; note: string; phase: string }[] = [
+  { phase: 'フェーズ2', name: '電子契約の拡張機能', note: '3名以上の複数署名、署名順の指定、再送、署名期限の管理' },
+  { phase: 'フェーズ2', name: 'OCRによる紙契約書の読み取り', note: 'スキャンしたPDFからの文字認識' },
+  { phase: 'フェーズ2', name: 'AIによる契約書主要項目の自動抽出', note: '契約金額・期間・相手先などの自動読み取り' },
+  { phase: 'フェーズ2', name: '契約相手先・契約内容による自動振り分け', note: '保管フォルダとタグの自動決定' },
+  { phase: 'フェーズ2', name: '高度な全文検索', note: '契約書本文を対象にした検索（本デモは台帳項目の基本検索）' },
+  { phase: 'フェーズ2', name: '監査ログ・証跡・セキュリティ強化', note: 'アクセス元の記録を含む詳細な監査証跡（本デモは基本の操作履歴）' },
+  { phase: 'フェーズ3', name: '過去契約書・既存データ移行', note: '既存の契約書データの一括取込' },
+  { phase: 'フェーズ3', name: '契約更新・期限管理・アラート強化', note: '更新期限の通知と更新稟議の自動起票' },
+  { phase: 'フェーズ3', name: 'ワークフローの追加・運用ルール拡張', note: '承認ルートの種類追加と運用ルールの拡張' },
+  { phase: 'フェーズ3', name: '管理ダッシュボード・集計機能', note: '処理件数・電子化率などの集計と可視化' },
+  { phase: 'フェーズ3', name: '追加の外部システム連携', note: '会計システム以外との連携' },
 ];
 
 export function Guide({ onStartTour }: GuideProps) {
@@ -155,12 +160,13 @@ export function Guide({ onStartTour }: GuideProps) {
           このフェーズに含めていない機能
         </div>
         <p className="fs-13 text-sub mb-12">
-          次のフェーズで追加する想定の機能です。今回のデモ画面には含めていません。
+          フェーズ2・フェーズ3で追加する想定の機能です。今回のデモ画面には含めていません。
         </p>
         <div className="table-wrap">
           <table className="data compact">
             <thead>
               <tr>
+                <th>フェーズ</th>
                 <th>機能</th>
                 <th>内容</th>
               </tr>
@@ -168,6 +174,7 @@ export function Guide({ onStartTour }: GuideProps) {
             <tbody>
               {OUT_OF_SCOPE.map(o => (
                 <tr key={o.name}>
+                  <td className="fs-13" style={{ whiteSpace: 'nowrap' }}>{o.phase}</td>
                   <td className="fs-13 fw-600">{o.name}</td>
                   <td className="fs-13 text-sub">{o.note}</td>
                 </tr>

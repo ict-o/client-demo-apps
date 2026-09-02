@@ -4,19 +4,21 @@ import type { ContractType, Member, Request, RequestKind } from '../types';
 import { roleMeta, routeRules } from '../data/sampleData';
 import { RoutePreview } from '../components/RoutePreview';
 import { Badge } from '../components/Badge';
+import { EmptyState } from '../components/EmptyState';
 import { currentStep } from '../utils/domain';
 import { formatYen } from '../utils/format';
 
 interface RouteSettingsProps {
   members: Member[];
   requests: Request[];
+  viewer: Member;
 }
 
 const CONTRACT_TYPES: ContractType[] = ['賃貸借契約', '売買契約', '管理受託契約', '工事請負契約', '業務委託契約'];
 
 const AMOUNT_PRESETS = [500_000, 1_500_000, 6_000_000];
 
-export function RouteSettings({ members, requests }: RouteSettingsProps) {
+export function RouteSettings({ members, requests, viewer }: RouteSettingsProps) {
   const navigate = useNavigate();
   const [kind, setKind] = useState<RequestKind>('ringi');
   const [amount, setAmount] = useState<number>(1_500_000);
@@ -34,6 +36,17 @@ export function RouteSettings({ members, requests }: RouteSettingsProps) {
       });
     return map;
   }, [requests]);
+
+  if (viewer.role !== 'admin') {
+    return (
+      <div className="card">
+        <EmptyState
+          title="この画面を表示する権限がありません"
+          desc="承認ルート設定はシステム管理者のみが利用できます。画面右上の利用者切替でシステム管理者に切り替えると表示されます。"
+        />
+      </div>
+    );
+  }
 
   return (
     <div>

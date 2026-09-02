@@ -4,7 +4,7 @@ import type { Contract, ContractType, Member } from '../types';
 import { Badge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
 import { canWriteByRole, contractPhase, contractPhaseMeta } from '../utils/domain';
-import { daysUntil, formatDate, formatYen } from '../utils/format';
+import { formatDate, formatYen } from '../utils/format';
 
 interface ContractListProps {
   viewer: Member;
@@ -26,7 +26,7 @@ export function ContractList({ viewer, contracts }: ContractListProps) {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState('');
   const [type, setType] = useState<ContractType | 'all'>('all');
-  const [phase, setPhase] = useState<'all' | 'expiring' | 'expired'>('all');
+  const [phase, setPhase] = useState<'all' | 'active' | 'expired'>('all');
   const [sort, setSort] = useState<SortKey>('endAsc');
 
   const rows = useMemo(() => {
@@ -103,11 +103,11 @@ export function ContractList({ viewer, contracts }: ContractListProps) {
           style={{ width: 'auto' }}
           value={phase}
           onChange={e => setPhase(e.target.value as typeof phase)}
-          aria-label="契約期限で絞り込む"
+          aria-label="契約の状態で絞り込む"
         >
-          <option value="all">期限: すべて</option>
-          <option value="expiring">期限: 60日以内に満了</option>
-          <option value="expired">期限: 満了済</option>
+          <option value="all">状態: すべて</option>
+          <option value="active">状態: 契約期間中</option>
+          <option value="expired">状態: 満了済</option>
         </select>
         <select
           className="select"
@@ -148,7 +148,6 @@ export function ContractList({ viewer, contracts }: ContractListProps) {
             <tbody>
               {rows.map(c => {
                 const meta = contractPhaseMeta(contractPhase(c));
-                const rest = daysUntil(c.endDate);
                 return (
                   <tr key={c.id} className="clickable" onClick={() => navigate(`/contracts/${c.id}`)}>
                     <td style={{ whiteSpace: 'nowrap' }}>
@@ -168,10 +167,7 @@ export function ContractList({ viewer, contracts }: ContractListProps) {
                       <div>
                         {formatDate(c.startDate)} 〜
                       </div>
-                      <div>
-                        {formatDate(c.endDate)}
-                        {rest >= 0 ? `（あと${rest}日）` : `（${-rest}日超過）`}
-                      </div>
+                      <div>{formatDate(c.endDate)}</div>
                     </td>
                     <td>
                       <div className="row gap-6 wrap">

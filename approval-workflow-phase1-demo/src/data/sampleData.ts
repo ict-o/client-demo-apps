@@ -553,22 +553,6 @@ const rawSampleInbox: InboxFile[] = [
   },
 ];
 
-/** 月次の処理件数（ダッシュボードの推移グラフ用・架空の実績値）。直近6か月として表示します */
-const volumeTrend = [
-  { paper: 138, digital: 0 },
-  { paper: 145, digital: 0 },
-  { paper: 132, digital: 8 },
-  { paper: 121, digital: 27 },
-  { paper: 96, digital: 54 },
-  { paper: 61, digital: 88 },
-];
-
-export const monthlyVolume: { month: string; paper: number; digital: number }[] = volumeTrend.map((v, i) => {
-  const d = new Date();
-  d.setDate(1);
-  d.setMonth(d.getMonth() - (volumeTrend.length - 1 - i));
-  return { month: `${d.getMonth() + 1}月`, ...v };
-});
 
 /* ===== 電子契約（締結案件）のサンプル — すべて架空です ===== */
 
@@ -624,7 +608,6 @@ const rawSampleEnvelopes: Envelope[] = [
       { id: 'fd104', signerId: 'sg102', kind: 'date' },
     ],
     sentAt: '2026-08-17T16:20:00+09:00',
-    deadline: '2026-08-24',
     documentHash: '9f2c41ab7d6e0538c1b4a97e25d3f8016ba4c7d92e5081f3ac6bd47e90128fa5',
     audit: [
       { id: 'au101', at: '2026-08-17T16:20:00+09:00', actor: '相川 悠真', action: '署名依頼を送信しました（署名者2名）' },
@@ -676,7 +659,6 @@ const rawSampleEnvelopes: Envelope[] = [
       { id: 'fd204', signerId: 'sg202', kind: 'date' },
     ],
     sentAt: '2026-08-19T11:10:00+09:00',
-    deadline: '2026-08-26',
     documentHash: '41d8ec3b95a7206fe0c4b81d76a9f5320c8e17b4d6902af35be1c78d40f9236a',
     audit: [
       { id: 'au201', at: '2026-08-19T11:10:00+09:00', actor: '相川 悠真', action: '署名依頼を送信しました（署名者2名）' },
@@ -734,7 +716,6 @@ const rawSampleEnvelopes: Envelope[] = [
       { id: 'fd404', signerId: 'sg402', kind: 'date', value: '2026/07/31' },
     ],
     sentAt: '2026-07-30T13:40:00+09:00',
-    deadline: '2026-08-06',
     completedAt: '2026-07-31T09:05:00+09:00',
     documentHash: '2ea9741cb038d5f6907a3b2c48e15d09f7a6b3c210de8471f95b02cd63a814e7',
     contractId: 'ct5',

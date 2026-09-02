@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import type { Envelope } from '../types';
 import { Badge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
-import { deadlineDays, envelopeStatusMeta, isInProgress, nextSigner, signProgress } from '../utils/esign';
-import { formatDate, formatDateTime, formatYen } from '../utils/format';
+import { envelopeStatusMeta, isInProgress, nextSigner, signProgress } from '../utils/esign';
+import { formatDateTime, formatYen } from '../utils/format';
 
 interface EsignListProps {
   envelopes: Envelope[];
@@ -37,16 +37,13 @@ export function EsignList({ envelopes }: EsignListProps) {
         }
         return true;
       })
-      .sort((a, b) => {
-        if (isInProgress(a) && isInProgress(b)) return a.deadline.localeCompare(b.deadline);
-        return b.sentAt.localeCompare(a.sentAt);
-      });
+      .sort((a, b) => b.sentAt.localeCompare(a.sentAt));
   }, [envelopes, tab, keyword]);
 
   const inProgress = envelopes.filter(isInProgress);
-  const dueSoon = inProgress.filter(e => deadlineDays(e) >= 0 && deadlineDays(e) <= 3);
-  const overdue = envelopes.filter(e => isInProgress(e) && deadlineDays(e) < 0);
   const waitingUs = inProgress.filter(e => nextSigner(e)?.side === 'internal');
+  const waitingCounterparty = inProgress.filter(e => nextSigner(e)?.side === 'counterparty');
+  const completed = envelopes.filter(e => e.status === 'completed');
 
   return (
     <div>
@@ -77,17 +74,17 @@ export function EsignList({ envelopes }: EsignListProps) {
             <span className="kpi-unit">件</span>
           </div>
         </div>
-        <div className="kpi accent-warning">
-          <div className="kpi-label">署名期限まで3日以内</div>
-          <div className={`kpi-value${dueSoon.length > 0 ? ' warning' : ''}`}>
-            {dueSoon.length}
+        <div className="kpi accent-info">
+          <div className="kpi-label">相手先の署名待ち</div>
+          <div className="kpi-value">
+            {waitingCounterparty.length}
             <span className="kpi-unit">件</span>
           </div>
         </div>
-        <div className="kpi accent-error">
-          <div className="kpi-label">期限切れ</div>
-          <div className={`kpi-value${overdue.length > 0 ? ' error' : ''}`}>
-            {overdue.length}
+        <div className="kpi accent-success">
+          <div className="kpi-label">締結済</div>
+          <div className="kpi-value">
+            {completed.length}
             <span className="kpi-unit">件</span>
           </div>
         </div>
@@ -138,7 +135,6 @@ export function EsignList({ envelopes }: EsignListProps) {
                 <th className="num">契約金額</th>
                 <th>署名の進捗</th>
                 <th>次の署名者</th>
-                <th>署名期限</th>
                 <th>状態</th>
               </tr>
             </thead>
@@ -147,7 +143,6 @@ export function EsignList({ envelopes }: EsignListProps) {
                 const meta = envelopeStatusMeta(e.status);
                 const prog = signProgress(e);
                 const next = nextSigner(e);
-                const rest = deadlineDays(e);
                 return (
                   <tr key={e.id} className="clickable" onClick={() => navigate(`/esign/${e.id}`)}>
                     <td style={{ whiteSpace: 'nowrap' }}>
@@ -180,14 +175,6 @@ export function EsignList({ envelopes }: EsignListProps) {
                         </>
                       ) : (
                         '—'
-                      )}
-                    </td>
-                    <td className="fs-13" style={{ whiteSpace: 'nowrap' }}>
-                      <div>{formatDate(e.deadline)}</div>
-                      {isInProgress(e) && (
-                        <div className={`fs-12 ${rest < 0 ? 'text-error' : 'text-sub'}`}>
-                          {rest >= 0 ? `あと${rest}日` : `${-rest}日超過`}
-                        </div>
                       )}
                     </td>
                     <td>

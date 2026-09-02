@@ -5,7 +5,6 @@ import type { AppActions, EnvelopeDraft } from '../App';
 import { Modal } from '../components/Modal';
 import { EmptyState } from '../components/EmptyState';
 import { ContractDoc } from '../components/ContractDoc';
-import { addDays, defaultDeadline } from '../utils/esign';
 import { formatDate, formatYen, todayIso } from '../utils/format';
 
 interface EsignNewProps {
@@ -19,7 +18,7 @@ type Step = 1 | 2;
 
 const STEP_LABELS: { no: Step; label: string }[] = [
   { no: 1, label: '契約内容の確認' },
-  { no: 2, label: '署名者・署名期限の設定と送信' },
+  { no: 2, label: '署名者の設定と送信' },
 ];
 
 let fieldSeq = 0;
@@ -44,8 +43,6 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
   const [counterpartyTitle, setCounterpartyTitle] = useState('契約ご担当者');
   const [counterpartyEmail, setCounterpartyEmail] = useState('');
   const [internalId, setInternalId] = useState(sealHolder?.id ?? '');
-  const [counterpartyFirst, setCounterpartyFirst] = useState(true);
-  const [deadline, setDeadline] = useState(defaultDeadline());
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -59,7 +56,7 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
       email: counterpartyEmail.trim(),
       title: counterpartyTitle.trim(),
       side: 'counterparty',
-      order: counterpartyFirst ? 1 : 2,
+      order: 1,
       status: 'waiting',
       auth: 'メール認証',
     };
@@ -70,12 +67,12 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
       email: 'daihyo@example.jp',
       title: internalMember?.title ?? '',
       side: 'internal',
-      order: counterpartyFirst ? 2 : 1,
+      order: 2,
       status: 'waiting',
       auth: 'メール認証',
     };
     return [counterparty, internal].sort((a, b) => a.order - b.order);
-  }, [company, counterpartyEmail, counterpartyFirst, counterpartyName, counterpartyTitle, internalMember, target]);
+  }, [company, counterpartyEmail, counterpartyName, counterpartyTitle, internalMember, target]);
 
   /** 書類末尾の標準レイアウトに置く署名欄（署名者ごとに署名欄と署名日欄を1つずつ） */
   const fields: SignField[] = useMemo(
@@ -159,7 +156,6 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
     if (counterpartyEmail.trim() === '') next.email = '署名依頼を送るメールアドレスを入力してください';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(counterpartyEmail.trim()))
       next.email = 'メールアドレスの形式が正しくありません（例: tantou@example.jp）';
-    if (deadline < todayIso()) next.deadline = '署名期限は今日以降の日付を指定してください';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -180,7 +176,6 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
       autoRenew: false,
       signers,
       fields,
-      deadline,
     };
     const id = actions.sendEnvelope(draft);
     setConfirmOpen(false);
@@ -201,7 +196,7 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
           </div>
           <h1 className="page-title">電子契約の送信準備</h1>
           <p className="page-sub">
-            {target.counterparty} と締結します。2つのステップで契約内容と署名者・署名期限を確認して送信します。
+            {target.counterparty} と締結します。2つのステップで契約内容と署名者を確認して送信します。
           </p>
         </div>
       </div>
@@ -356,53 +351,11 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
           <section className="card card-pad">
             <div className="section-title">
               <span className="bar" />
-              署名順と署名期限
+              署名の順番
             </div>
-            <div className="field">
-              <span className="field-label">署名順</span>
-              <label className="check-row" htmlFor="order-cp">
-                <input
-                  id="order-cp"
-                  type="radio"
-                  name="signorder"
-                  checked={counterpartyFirst}
-                  onChange={() => setCounterpartyFirst(true)}
-                />
-                <span>相手先が先に署名し、その後に当社が署名する（推奨）</span>
-              </label>
-              <label className="check-row" htmlFor="order-in">
-                <input
-                  id="order-in"
-                  type="radio"
-                  name="signorder"
-                  checked={!counterpartyFirst}
-                  onChange={() => setCounterpartyFirst(false)}
-                />
-                <span>当社が先に署名し、その後に相手先が署名する</span>
-              </label>
-            </div>
-            <div className="field">
-              <label className="field-label" htmlFor="deadline">
-                署名期限
-              </label>
-              <input
-                id="deadline"
-                type="date"
-                className={`input${errors.deadline ? ' invalid' : ''}`}
-                value={deadline}
-                onChange={e => setDeadline(e.target.value)}
-                style={{ maxWidth: '200px' }}
-              />
-              {errors.deadline && <span className="field-error">{errors.deadline}</span>}
-              <div className="row gap-8 wrap mt-8">
-                {[3, 7, 14].map(d => (
-                  <button key={d} className="btn btn-ghost btn-sm" onClick={() => setDeadline(addDays(todayIso(), d))}>
-                    {d}日後にする
-                  </button>
-                ))}
-              </div>
-              <span className="field-note">署名期限は電子契約の一覧・詳細画面に表示され、残り日数が分かります。</span>
-            </div>
+            <p className="fs-13 text-sub mb-12">
+              相手先が署名したあとに当社が署名する順番で送信します。署名順の変更や3名以上の複数署名、署名期限の管理はこのフェーズの対象外です。
+            </p>
 
             <div className="divider" />
             <div className="section-title">
@@ -488,10 +441,6 @@ export function EsignNew({ requests, members, company, actions }: EsignNewProps)
             <div className="v">
               {signers[0].name}（{signers[0].company}）
             </div>
-          </div>
-          <div className="info-item">
-            <div className="k">署名期限</div>
-            <div className="v">{formatDate(deadline)}</div>
           </div>
           <div className="info-item">
             <div className="k">本人確認</div>

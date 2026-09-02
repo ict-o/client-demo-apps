@@ -8,7 +8,6 @@ import { EmptyState } from '../components/EmptyState';
 import { ContractDoc, SignatureSummary } from '../components/ContractDoc';
 import {
   SIGNATURE_FONTS,
-  deadlineDays,
   envelopeStatusMeta,
   isInProgress,
   nextSigner,
@@ -16,7 +15,7 @@ import {
   signerStatusMeta,
 } from '../utils/esign';
 import type { SignatureFontId } from '../utils/esign';
-import { formatDate, formatDateTime, formatYen } from '../utils/format';
+import { formatDateTime, formatYen } from '../utils/format';
 
 interface EsignDetailProps {
   envelopes: Envelope[];
@@ -53,7 +52,6 @@ export function EsignDetail({ envelopes, viewer, company, actions }: EsignDetail
   const meta = envelopeStatusMeta(env.status);
   const prog = signProgress(env);
   const next = nextSigner(env);
-  const rest = deadlineDays(env);
   const ourTurn = next?.side === 'internal';
 
   const openSignDialog = () => {
@@ -102,26 +100,6 @@ export function EsignDetail({ envelopes, viewer, company, actions }: EsignDetail
           </button>
         )}
       </div>
-
-      {isInProgress(env) && rest >= 0 && rest <= 3 && (
-        <div className="banner warning">
-          <span aria-hidden="true">!</span>
-          <div>
-            <strong>署名期限まであと {rest} 日です。</strong>
-            {next?.name} さんの署名が未完了です。
-          </div>
-        </div>
-      )}
-
-      {isInProgress(env) && rest < 0 && (
-        <div className="banner error">
-          <span aria-hidden="true">!</span>
-          <div>
-            <strong>署名期限を {Math.abs(rest)} 日超過しています。</strong>
-            相手先の署名状況を確認してください。
-          </div>
-        </div>
-      )}
 
       {env.status === 'completed' && (
         <div className="banner info">
@@ -262,13 +240,6 @@ export function EsignDetail({ envelopes, viewer, company, actions }: EsignDetail
               <div className="info-item">
                 <div className="k">管理番号</div>
                 <div className="v">{env.code}</div>
-              </div>
-              <div className="info-item">
-                <div className="k">署名期限</div>
-                <div className="v">
-                  {formatDate(env.deadline)}
-                  {isInProgress(env) && (rest >= 0 ? `（あと${rest}日）` : `（${-rest}日超過）`)}
-                </div>
               </div>
               <div className="info-item">
                 <div className="k">書類のハッシュ値</div>
