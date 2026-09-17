@@ -1,6 +1,6 @@
 import type { DocKind, Partner, Project } from '../types';
 import { DOC_KIND_LABELS } from '../types';
-import { OWN_COMPANY } from '../data/sampleData';
+import { OWN_COMPANY, termsTemplate } from '../data/sampleData';
 import { calcTotals, lineAmount } from '../utils/calc';
 import { buildArticles, documentNo, partiesOf } from '../utils/docs';
 import { formatDate, formatJpDate, formatNumber, formatYen } from '../utils/format';
@@ -20,7 +20,7 @@ export function DocumentPreview({ project, partner, kind }: Props) {
   const period =
     project.terms.startDate && project.terms.endDate
       ? `${formatDate(project.terms.startDate)} 〜 ${formatDate(project.terms.endDate)}`
-      : '未定（契約条件で設定してください）';
+      : '未定（「工事の条件」で入力してください）';
 
   const title = kind === 'terms' ? '基本契約書' : DOC_KIND_LABELS[kind];
 
@@ -92,8 +92,8 @@ function QuoteBody({
 
   return (
     <>
-      <div style={{ fontSize: '14px', fontWeight: 700 }}>{addressee} 御中</div>
-      <div className="fs-12 text-sub mt-4">下記のとおりお見積り申し上げます。</div>
+      <div className="doc-addressee">{addressee} 御中</div>
+      <div className="doc-lead">下記のとおりお見積り申し上げます。</div>
 
       <div className="amount-box">お見積金額（税込）&#12288;{formatYen(totals.total)}</div>
 
@@ -156,8 +156,8 @@ function QuoteBody({
       </div>
 
       <div className="note">
-        ※ 本見積書は建設業法第20条に基づき、工事の種別ごとの材料費・労務費等の内訳を明示しています。<br />
-        ※ 本見積書の内容は、注文書・注文請書・基本契約書（約款）へ自動的に引き継がれます。
+        ※ 本見積書は、取り込んだ見積書ファイル「{project.sourceFile.name}」の内容をもとに表示しています。<br />
+        ※ 建設業法第20条に基づき、工事の種別ごとの内訳を明示しています。
       </div>
     </>
   );
@@ -180,13 +180,14 @@ function OrderBody({
 }) {
   const isOrder = kind === 'order';
   const t = project.terms;
+  const template = termsTemplate(t.termsTemplateId);
   const addressee = isOrder ? contractor : orderer;
   const issuer = isOrder ? orderer : contractor;
 
   return (
     <>
-      <div style={{ fontSize: '14px', fontWeight: 700 }}>{addressee.name} 御中</div>
-      <div className="fs-12 text-sub mt-4">
+      <div className="doc-addressee">{addressee.name} 御中</div>
+      <div className="doc-lead">
         {isOrder
           ? '下記のとおり工事を注文します。本注文書は基本契約書（約款）と一体のものとして取り扱います。'
           : '下記のとおりご注文をお請けいたします。本注文請書は基本契約書（約款）と一体のものとして取り扱います。'}
@@ -202,29 +203,29 @@ function OrderBody({
           <tr><th>工期</th><td>{period}</td></tr>
           <tr><th>施工しない日</th><td>{t.nonWorkingDays || '（未設定）'}</td></tr>
           <tr><th>請負代金の内訳</th><td>工事代金 {formatYen(totals.taxable)}／消費税等 {formatYen(totals.tax)}</td></tr>
-          <tr><th>前金払・出来形払</th><td>{t.advancePayment || '（未設定）'}</td></tr>
-          <tr><th>完成検査・引渡し</th><td>{[t.inspection, t.handover].filter(Boolean).join('／') || '（未設定）'}</td></tr>
           <tr><th>代金の支払</th><td>{t.paymentMethod || '（未設定）'}</td></tr>
-          <tr><th>契約不適合責任</th><td>{t.defectLiability || '（未設定）'}</td></tr>
-          <tr><th>関連書類</th><td>見積書 {documentNo(project, 'quote')}／基本契約書（約款）{documentNo(project, 'terms')}</td></tr>
+          <tr>
+            <th>その他の条件</th>
+            <td>
+              前金払・出来形払、完成検査・引渡し、契約不適合責任、遅延利息、紛争の解決などは
+              「{template.name}」（全 {template.clauses.length} 条）の定めによる。
+            </td>
+          </tr>
+          <tr>
+            <th>関連書類</th>
+            <td>見積書 {documentNo(project, 'quote')}／基本契約書（約款）{documentNo(project, 'terms')}</td>
+          </tr>
         </tbody>
       </table>
 
       <div className="party-row">
-        <PartyBlock
-          label={issuer.label}
-          name={issuer.name}
-          address={issuer.address}
-          tel={issuer.tel}
-          licenseNo={issuer.licenseNo}
-          seal
-        />
+        <PartyBlock label={issuer.label} name={issuer.name} address={issuer.address} tel={issuer.tel} licenseNo={issuer.licenseNo} seal />
         <PartyBlock label={addressee.label} name={addressee.name} address={addressee.address} tel={addressee.tel} licenseNo={addressee.licenseNo} seal />
       </div>
 
       <div className="note">
-        ※ 収入印紙の要否は請負代金の額に応じて判定してください（本デモでは印紙欄の表示のみ）。<br />
-        ※ 記載事項は建設業法第19条第1項各号に対応しています。未設定項目がある場合は「契約条件」タブで入力してください。
+        ※ 収入印紙の要否は請負代金の額に応じて判定してください（本デモでは表示のみ）。<br />
+        ※ 記載事項は建設業法第19条第1項各号に対応しています。
       </div>
     </>
   );
@@ -242,16 +243,24 @@ function TermsBody({
   contractor: ReturnType<typeof partiesOf>['contractor'];
 }) {
   const articles = buildArticles(project, partner);
+  const template = termsTemplate(project.terms.termsTemplateId);
+
   return (
     <>
-      <div className="fs-12 text-sub">
+      <div className="doc-lead">
         {orderer.name}（甲）と {contractor.name}（乙）は、{project.title} について次のとおり基本契約を締結する。
+      </div>
+      <div className="note" style={{ marginTop: '8px' }}>
+        適用する約款：{template.name}
       </div>
 
       <div className="mt-16">
         {articles.map(a => (
           <div className="article" key={a.no}>
-            <div className="art-head">{a.no}（{a.title}）</div>
+            <div className="art-head">
+              {a.no}（{a.title}）
+              {a.fromTemplate && <span className="art-tag">約款テンプレートから自動</span>}
+            </div>
             <div className="art-body">{a.body}</div>
           </div>
         ))}

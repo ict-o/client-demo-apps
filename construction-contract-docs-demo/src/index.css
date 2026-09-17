@@ -8,36 +8,47 @@
   --bg: #F2F4F7;
   --bg-alt: #E8EDF3;
   --card: #FFFFFF;
-  --text: #1C2733;
-  --text-sub: #54626E;
-  --text-muted: #6B7883;
+  --text: #16202B;
+  --text-sub: #4A5763;
+  --text-muted: #5E6B77;
   --border: #DDE3EA;
-  --border-strong: #C2CCD7;
+  --border-strong: #B8C4D0;
 
-  --accent: #23548C;
-  --accent-dark: #173F6D;
+  --accent: #1F5490;
+  --accent-dark: #143C69;
   --accent-light: #E3EDF8;
   --accent-soft: #F3F7FC;
 
-  --info: #2B6CB0;
+  /* 各トーンは 本体色 / 背景 / 枠線 / 濃い文字色 の4段で持つ */
+  --info: #275F9C;
   --info-light: #E4EEF8;
-  --success: #2F7A55;
+  --info-border: #B9D2EC;
+  --info-strong: #1B486F;
+  --success: #276B4A;
   --success-light: #E3F1E9;
-  --warning: #A96A12;
+  --success-border: #A9D3BC;
+  --success-strong: #1F5138;
+  --warning: #965D0C;
   --warning-light: #FBF0DC;
-  --error: #BC3B2C;
+  --warning-border: #E4C68A;
+  --warning-strong: #6F4508;
+  --error: #AE3427;
   --error-light: #FBE7E4;
+  --error-border: #EEB6AE;
+  --error-strong: #8A281D;
 
-  --shadow-sm: 0 1px 3px rgba(28, 39, 51, 0.07);
-  --shadow-md: 0 4px 12px rgba(28, 39, 51, 0.09);
-  --shadow-lg: 0 10px 28px rgba(28, 39, 51, 0.14);
+  --neutral: #4A5763;
+  --neutral-light: #E7ECF1;
 
-  --radius-sm: 5px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(22, 32, 43, 0.08);
+  --shadow-md: 0 4px 12px rgba(22, 32, 43, 0.10);
+  --shadow-lg: 0 10px 28px rgba(22, 32, 43, 0.16);
+
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 13px;
 
   --font-sans: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif;
-  --font-mincho: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
 }
 
 html, body, #root {
@@ -45,8 +56,9 @@ html, body, #root {
   font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
-  font-size: 14px;
-  line-height: 1.65;
+  /* パソコン操作に不慣れな方でも読みやすいよう、本文を大きめに設定する */
+  font-size: 16px;
+  line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   text-align: left;
 }
@@ -57,26 +69,38 @@ button { font-family: var(--font-sans); cursor: pointer; }
 
 input, select, textarea {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 16px;
 }
 
-h1, h2, h3, h4 { font-weight: 600; letter-spacing: 0.01em; }
+h1, h2, h3, h4 { font-weight: 700; letter-spacing: 0.01em; }
 
 /* 数値・金額セルは右揃え（§5-UI） */
 .num { text-align: right; font-variant-numeric: tabular-nums; }
+.tnum { font-variant-numeric: tabular-nums; }
 
 /* フォーカス可視化 */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--accent);
+textarea:focus-visible,
+[role='tab']:focus-visible {
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
-::-webkit-scrollbar { width: 8px; height: 8px; }
+/* 画面には出さないがスクリーンリーダーには読ませるラベル */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }

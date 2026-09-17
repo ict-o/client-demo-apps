@@ -1,12 +1,13 @@
 // 架空のサンプルデータ（実在の企業・個人・案件とは一切関係ありません）
 
 import type {
+  ContractTerms,
   DocKind,
   DocStatus,
   DocumentRecord,
   Partner,
   Project,
-  ContractTerms,
+  QuoteFile,
 } from '../types';
 
 /** 自社（デモ上の運営会社。架空） */
@@ -17,24 +18,152 @@ export const OWN_COMPANY = {
   postalCode: '000-0000',
   address: '東京都大田区〇〇町0-0-0',
   tel: '03-0000-1234',
-  fax: '03-0000-1235',
-  email: 'koji@example.jp',
   representative: '代表取締役 宮下 泰久',
-  bank: '〇〇銀行 〇〇支店 普通 0000000',
 };
 
 /** ログイン中の利用者（架空） */
 export const CURRENT_USER = {
   name: '中村 遥',
   department: '工事事業部 契約管理課',
-  role: '契約管理担当',
 };
 
-/** 約款テンプレート（版管理して全案件に適用する想定） */
-export const TERMS_TEMPLATES = [
-  { id: 'tpl-standard', name: '工事請負基本契約約款（第3版）', target: '受注案件（発注者との契約）', articles: 15 },
-  { id: 'tpl-subcon', name: '下請負基本契約約款（第2版）', target: '発注案件（協力会社との契約）', articles: 16 },
+/** 社内担当者の候補（架空） */
+export const STAFF_OPTIONS = ['中村 遥', '藤代 悠斗', '小柳 里菜'];
+
+export interface TermsTemplate {
+  id: string;
+  name: string;
+  target: string;
+  /** テンプレートに含まれる定型条項。担当者が入力する必要はない */
+  clauses: { title: string; body: string; clause: string }[];
+}
+
+/** 約款テンプレート（案件ごとに変わらない取り決めをまとめて持たせる） */
+export const TERMS_TEMPLATES: TermsTemplate[] = [
+  {
+    id: 'tpl-standard',
+    name: '工事請負基本契約約款（第3版）',
+    target: 'お客様から受注する工事',
+    clauses: [
+      {
+        clause: '第19条第1項第5号',
+        title: '前金払および出来形部分に対する支払',
+        body: '前金払および出来形部分に対する支払は行わない。ただし、甲乙協議のうえ書面により別段の定めをすることができる。',
+      },
+      {
+        clause: '第19条第1項第6号',
+        title: '設計変更・工期の変更',
+        body: '甲または乙の申出により設計変更、工事着手の延期または工事の中止が生じた場合、工期の変更、請負代金の額の変更および損害の負担は、甲乙協議のうえ書面により定める。',
+      },
+      {
+        clause: '第19条第1項第7号',
+        title: '不可抗力による工期の変更・損害の負担',
+        body: '天災その他甲乙いずれの責にも帰することができない事由により工期の変更または損害が生じた場合、その負担および額の算定方法は甲乙協議のうえ定める。',
+      },
+      {
+        clause: '第19条第1項第8号',
+        title: '価格等の変動による請負代金・工事内容の変更',
+        body: '資材価格、労務費その他の価格等に著しい変動が生じたときは、甲乙協議のうえ請負代金の額または工事内容を変更することができる。',
+      },
+      {
+        clause: '第19条第1項第9号',
+        title: '第三者に与えた損害の負担',
+        body: '施工に起因して第三者に与えた損害は乙が負担する。ただし、不可抗力による場合および甲の指示に起因する場合はこの限りでない。',
+      },
+      {
+        clause: '第19条第1項第10号',
+        title: '支給材料および貸与機械',
+        body: '支給材料および貸与機械は原則として設けない。設ける場合は、その内容・数量・引渡場所および方法を書面により定める。',
+      },
+      {
+        clause: '第19条第1項第11号',
+        title: '完成検査および引渡し',
+        body: '乙の完成通知の受領後14日以内に甲の立会いのもと完成検査を行い、検査合格後7日以内に引渡しを行う。',
+      },
+      {
+        clause: '第19条第1項第13号',
+        title: '契約不適合責任',
+        body: '乙は、工事目的物に契約の内容に適合しない部分があるときは、引渡しの日から2年間（設備機器は1年間）その責任を負う。',
+      },
+      {
+        clause: '第19条第1項第14号',
+        title: '履行遅滞・違約金',
+        body: '履行遅滞その他債務不履行が生じた場合は、年率3.0％の遅延利息を付す。',
+      },
+      {
+        clause: '第19条第1項第15号',
+        title: '紛争の解決',
+        body: '本契約に関する紛争は甲乙協議のうえ解決し、協議が調わない場合は建設工事紛争審査会のあっせんまたは調停による。',
+      },
+    ],
+  },
+  {
+    id: 'tpl-subcon',
+    name: '下請負基本契約約款（第2版）',
+    target: '協力会社へ発注する工事',
+    clauses: [
+      {
+        clause: '第19条第1項第5号',
+        title: '前金払および出来形部分に対する支払',
+        body: '前金払および出来形部分に対する支払は行わない。ただし、甲乙協議のうえ書面により別段の定めをすることができる。',
+      },
+      {
+        clause: '第19条第1項第6号',
+        title: '設計変更・工期の変更',
+        body: '甲または乙の申出により設計変更、工事着手の延期または工事の中止が生じた場合、工期の変更、請負代金の額の変更および損害の負担は、甲乙協議のうえ書面により定める。',
+      },
+      {
+        clause: '第19条第1項第7号',
+        title: '不可抗力による工期の変更・損害の負担',
+        body: '天災その他甲乙いずれの責にも帰することができない事由により工期の変更または損害が生じた場合、その負担および額の算定方法は甲乙協議のうえ定める。',
+      },
+      {
+        clause: '第19条第1項第8号',
+        title: '価格等の変動による請負代金・工事内容の変更',
+        body: '資材価格、労務費その他の価格等に著しい変動が生じたときは、甲乙協議のうえ請負代金の額または工事内容を変更することができる。',
+      },
+      {
+        clause: '第19条第1項第9号',
+        title: '第三者に与えた損害の負担',
+        body: '施工に起因して第三者に与えた損害は乙が負担する。ただし、不可抗力による場合および甲の指示に起因する場合はこの限りでない。',
+      },
+      {
+        clause: '第19条第1項第10号',
+        title: '支給材料および貸与機械',
+        body: '支給材料および貸与機械を設ける場合は、その内容・数量・引渡場所および方法を書面により定め、引渡し後の管理責任は乙が負う。',
+      },
+      {
+        clause: '第19条第1項第11号',
+        title: '完成検査および引渡し',
+        body: '乙の完成通知の受領後10日以内に甲の立会いのもと完成検査を行い、検査合格後7日以内に引渡しを行う。',
+      },
+      {
+        clause: '第19条第1項第13号',
+        title: '契約不適合責任',
+        body: '乙は、工事目的物に契約の内容に適合しない部分があるときは、引渡しの日から2年間その責任を負う。',
+      },
+      {
+        clause: '第19条第1項第14号',
+        title: '履行遅滞・違約金',
+        body: '履行遅滞その他債務不履行が生じた場合は、年率3.0％の遅延利息を付す。',
+      },
+      {
+        clause: '第19条第1項第15号',
+        title: '紛争の解決',
+        body: '本契約に関する紛争は甲乙協議のうえ解決し、協議が調わない場合は建設工事紛争審査会のあっせんまたは調停による。',
+      },
+      {
+        clause: '第24条の3ほか',
+        title: '下請代金の支払',
+        body: '甲は、注文者から出来形部分に対する支払または竣工払を受けたときは、当該支払対象となる工事を施工した乙に対し、支払を受けた日から1か月以内に下請代金を支払う。',
+      },
+    ],
+  },
 ];
+
+export function termsTemplate(id: string): TermsTemplate {
+  return TERMS_TEMPLATES.find(t => t.id === id) ?? TERMS_TEMPLATES[0];
+}
 
 export const partners: Partner[] = [
   {
@@ -46,10 +175,8 @@ export const partners: Partner[] = [
     postalCode: '000-0000',
     address: '東京都江東区〇〇0-0-0 〇〇ビル8F',
     tel: '03-0000-2201',
-    email: 'k.omori@example.com',
     licenseNo: '国土交通大臣許可（特-4）第00000号',
     paymentTerms: '月末締め翌月末 銀行振込',
-    note: '書類一式（見積・注文・請書・約款）の提出を毎回求められる。法対応の起点となった取引先。',
   },
   {
     id: 'p-02',
@@ -60,10 +187,8 @@ export const partners: Partner[] = [
     postalCode: '000-0000',
     address: '神奈川県横浜市西区〇〇0-0-0',
     tel: '045-0000-3310',
-    email: 's.shiraishi@example.com',
     licenseNo: '',
     paymentTerms: '20日締め翌月20日 銀行振込',
-    note: '複数物件を保有。工事ごとに注文書の発行なし（当社作成の注文書へ押印で対応）。',
   },
   {
     id: 'p-03',
@@ -74,10 +199,8 @@ export const partners: Partner[] = [
     postalCode: '000-0000',
     address: '埼玉県川越市〇〇0-0-0',
     tel: '049-0000-4412',
-    email: 'r.oikawa@example.com',
     licenseNo: '',
     paymentTerms: '月末締め翌々月10日 銀行振込',
-    note: '設備更新は稼働停止日（日曜）のみ施工可。',
   },
   {
     id: 'p-04',
@@ -88,10 +211,8 @@ export const partners: Partner[] = [
     postalCode: '000-0000',
     address: '千葉県船橋市〇〇0-0-0',
     tel: '047-0000-5523',
-    email: 'n.murase@example.com',
     licenseNo: '',
     paymentTerms: '月末締め翌月末 銀行振込',
-    note: '見積提出時に工程表の添付が必要。',
   },
   {
     id: 'p-05',
@@ -102,10 +223,8 @@ export const partners: Partner[] = [
     postalCode: '000-0000',
     address: '東京都江戸川区〇〇0-0-0',
     tel: '03-0000-6634',
-    email: 'k.itami@example.com',
     licenseNo: '',
     paymentTerms: '月末締め翌月末 銀行振込',
-    note: '夜間作業が中心。施工しない時間帯の取り決めを必ず記載する。',
   },
   {
     id: 'p-06',
@@ -116,10 +235,8 @@ export const partners: Partner[] = [
     postalCode: '000-0000',
     address: '東京都足立区〇〇0-0-0',
     tel: '03-0000-7745',
-    email: 'm.kishimoto@example.jp',
     licenseNo: '東京都知事許可（般-3）第00000号',
     paymentTerms: '月末締め翌月末 銀行振込（当社支払）',
-    note: '内装・軽鉄工事の主力協力会社。',
   },
   {
     id: 'p-07',
@@ -130,10 +247,8 @@ export const partners: Partner[] = [
     postalCode: '000-0000',
     address: '神奈川県川崎市川崎区〇〇0-0-0',
     tel: '044-0000-8856',
-    email: 'a.tomita@example.jp',
     licenseNo: '神奈川県知事許可（般-5）第00000号',
     paymentTerms: '20日締め翌月20日 銀行振込（当社支払）',
-    note: '給排水・空調設備の施工を委託。',
   },
   {
     id: 'p-08',
@@ -144,10 +259,8 @@ export const partners: Partner[] = [
     postalCode: '000-0000',
     address: '埼玉県さいたま市南区〇〇0-0-0',
     tel: '048-0000-9967',
-    email: 'r.sawai@example.jp',
-    licenseNo: '埼玉県知事許可（般-2）第00000号',
+    licenseNo: '',
     paymentTerms: '月末締め翌月末 銀行振込（当社支払）',
-    note: '塗装・防水工事を委託。',
   },
   {
     id: 'p-09',
@@ -158,10 +271,8 @@ export const partners: Partner[] = [
     postalCode: '000-0000',
     address: '東京都板橋区〇〇0-0-0',
     tel: '03-0000-1078',
-    email: 'm.kamoshida@example.jp',
-    licenseNo: '',
+    licenseNo: '東京都知事許可（般-4）第00000号',
     paymentTerms: '月末締め翌月末 銀行振込（当社支払）',
-    note: '建設業許可番号が未登録。500万円以上の工事を発注する前に確認が必要。',
   },
 ];
 
@@ -195,21 +306,13 @@ function buildDocs(
   });
 }
 
-/** 契約条件の既定値（未入力欄は法定記載事項の不足として検知される） */
+/** 工事の条件。未入力の欄は「書類に必要な項目」で不足として検知される */
 function terms(partial: Partial<ContractTerms>): ContractTerms {
   return {
     startDate: '',
     endDate: '',
-    nonWorkingDays: '日曜日および年末年始（12/29〜1/3）は施工しない',
-    advancePayment: '',
-    inspection: '完成通知の受領後14日以内に発注者立会いのもと完成検査を行う',
-    handover: '完成検査合格後7日以内に引渡しを行う',
+    nonWorkingDays: '日曜日および年末年始（12/29〜1/3）',
     paymentMethod: '',
-    defectLiability: '引渡しの日から2年間（設備機器は1年間）',
-    delayPenalty: '年率3.0％の遅延利息を付す',
-    thirdPartyDamage: '施工に起因して第三者に与えた損害は受注者が負担する（不可抗力による場合を除く）',
-    suppliedMaterials: '支給材料・貸与機械なし',
-    disputeResolution: '協議のうえ解決し、協議が調わない場合は建設工事紛争審査会のあっせん・調停による',
     termsTemplateId: 'tpl-standard',
     ...partial,
   };
@@ -245,25 +348,24 @@ export const sampleProjects: Project[] = [
       { id: 'it-5', name: '現場管理費', spec: '安全管理・仮設・書類作成共', quantity: 1, unit: '式', unitPrice: 195000 },
     ],
     discount: 40000,
+    sourceFile: { name: '見積書_〇〇物流センター架台工事_20260803.xlsx', importedAt: '2026-08-03T10:20:00' },
     terms: terms({
       startDate: '2026-09-14',
       endDate: '2026-10-16',
-      advancePayment: '契約成立後14日以内に請負代金の30％を前金払とする',
-      paymentMethod: '引渡し後、請求書受領月の翌月末までに銀行振込',
-      nonWorkingDays: '日曜日および施設の入出荷ピーク日（毎月25日）は施工しない',
+      paymentMethod: '引渡し後、月末締め翌月末 銀行振込',
+      nonWorkingDays: '日曜日および施設の入出荷ピーク日（毎月25日）',
     }),
     documents: buildDocs(
       '0031',
-      { quote: 'sent', order: 'sealed', acceptance: 'sent', terms: 'sealed' },
+      { quote: 'created', order: 'sealed', acceptance: 'sent', terms: 'sealed' },
       { quote: '2026-08-03', order: '2026-08-20', acceptance: '2026-08-24', terms: '2026-08-24' },
     ),
     revision: 1,
     history: history([
-      ['2026-08-03T10:20:00', '中村 遥', '見積書 EST-2026-0031 を作成しました'],
-      ['2026-08-03T15:05:00', '中村 遥', '見積書を発注者へ送付しました'],
-      ['2026-08-20T09:40:00', '中村 遥', '見積書から注文書・注文請書・基本契約書（約款）を自動生成しました'],
-      ['2026-08-20T16:30:00', '中村 遥', '押印済みの注文書を受領しました'],
-      ['2026-08-24T11:10:00', '中村 遥', '注文請書を送付し、受注確定としました'],
+      ['2026-08-03T10:20:00', '中村 遥', '見積書ファイル「見積書_〇〇物流センター架台工事_20260803.xlsx」を取り込みました'],
+      ['2026-08-20T09:40:00', '中村 遥', '見積書の内容から注文書・注文請書・基本契約書（約款）を作成しました'],
+      ['2026-08-20T16:30:00', '中村 遥', '押印済みの注文書を受け取りました'],
+      ['2026-08-24T11:10:00', '中村 遥', '注文請書を送付し、契約成立としました'],
     ]),
     updatedAt: '2026-08-24T11:10:00',
     bundleFileName: 'KJ-2026-0031_工事関係書類一式.pdf',
@@ -287,24 +389,23 @@ export const sampleProjects: Project[] = [
       { id: 'it-4', name: '試運転調整', spec: '流量・漏れ確認、記録提出共', quantity: 1, unit: '式', unitPrice: 145000 },
     ],
     discount: 0,
+    sourceFile: { name: '見積書_〇〇食品工場_配管改修_20260821.xlsx', importedAt: '2026-08-21T13:15:00' },
     terms: terms({
       startDate: '2026-09-27',
       endDate: '2026-10-25',
-      nonWorkingDays: '工場稼働日は施工しない（施工は日曜日のみ）',
-      advancePayment: '前金払・出来形払は行わない',
-      paymentMethod: '引渡し後、請求書受領月の翌々月10日に銀行振込',
+      nonWorkingDays: '工場稼働日（施工は日曜日のみ）',
+      paymentMethod: '引渡し後、月末締め翌々月10日 銀行振込',
     }),
     documents: buildDocs(
       '0034',
-      { quote: 'sent', order: 'sealed', acceptance: 'created', terms: 'created' },
+      { quote: 'created', order: 'sealed', acceptance: 'created', terms: 'created' },
       { quote: '2026-08-21', order: '2026-09-04', acceptance: '2026-09-04', terms: '2026-09-04' },
     ),
     revision: 1,
     history: history([
-      ['2026-08-21T13:15:00', '藤代 悠斗', '見積書 EST-2026-0034 を作成しました'],
-      ['2026-08-21T17:40:00', '藤代 悠斗', '見積書を発注者へ送付しました'],
-      ['2026-09-04T09:05:00', '中村 遥', '見積書から注文書・注文請書・基本契約書（約款）を自動生成しました'],
-      ['2026-09-07T14:20:00', '中村 遥', '押印済みの注文書を受領しました'],
+      ['2026-08-21T13:15:00', '藤代 悠斗', '見積書ファイル「見積書_〇〇食品工場_配管改修_20260821.xlsx」を取り込みました'],
+      ['2026-09-04T09:05:00', '中村 遥', '見積書の内容から注文書・注文請書・基本契約書（約款）を作成しました'],
+      ['2026-09-07T14:20:00', '中村 遥', '押印済みの注文書を受け取りました'],
     ]),
     updatedAt: '2026-09-07T14:20:00',
   },
@@ -313,7 +414,7 @@ export const sampleProjects: Project[] = [
     no: 'KJ-2026-0036',
     title: '〇〇ビル 4階事務室 間仕切り新設工事',
     dealKind: 'receive',
-    status: 'quoted',
+    status: 'imported',
     partnerId: 'p-02',
     site: '神奈川県横浜市西区〇〇0-0-0 〇〇ビル4F',
     scope: 'LGS下地・石膏ボード張り間仕切りの新設、建具設置、内装仕上げ',
@@ -328,30 +429,25 @@ export const sampleProjects: Project[] = [
       { id: 'it-5', name: '廃材処分費', spec: '産業廃棄物 マニフェスト発行共', quantity: 1, unit: '式', unitPrice: 88000 },
     ],
     discount: 25000,
+    sourceFile: { name: '見積書_〇〇ビル4F_間仕切り新設_20260902.xlsx', importedAt: '2026-09-02T11:30:00' },
     terms: terms({
       startDate: '2026-10-05',
       endDate: '2026-10-30',
-      advancePayment: '前金払・出来形払は行わない',
-      paymentMethod: '引渡し後、請求書受領月の翌月20日に銀行振込',
+      paymentMethod: '引渡し後、20日締め翌月20日 銀行振込',
     }),
-    documents: buildDocs(
-      '0036',
-      { quote: 'sent', order: 'none', acceptance: 'none', terms: 'none' },
-      { quote: '2026-09-02' },
-    ),
+    documents: buildDocs('0036', { quote: 'created', order: 'none', acceptance: 'none', terms: 'none' }, { quote: '2026-09-02' }),
     revision: 1,
     history: history([
-      ['2026-09-02T11:30:00', '中村 遥', '見積書 EST-2026-0036 を作成しました'],
-      ['2026-09-02T16:00:00', '中村 遥', '見積書を発注者へ送付しました'],
+      ['2026-09-02T11:30:00', '中村 遥', '見積書ファイル「見積書_〇〇ビル4F_間仕切り新設_20260902.xlsx」を取り込みました'],
     ]),
-    updatedAt: '2026-09-02T16:00:00',
+    updatedAt: '2026-09-02T11:30:00',
   },
   {
     id: 'kj-0037',
     no: 'KJ-2026-0037',
     title: '〇〇電機 本社棟 屋上防水改修工事',
     dealKind: 'receive',
-    status: 'quoted',
+    status: 'imported',
     partnerId: 'p-04',
     site: '千葉県船橋市〇〇0-0-0 本社棟屋上',
     scope: '既存アスファルト防水の下地調整、ウレタン塗膜防水（X-1工法）、脱気筒設置',
@@ -365,30 +461,25 @@ export const sampleProjects: Project[] = [
       { id: 'it-4', name: '脱気筒設置', spec: 'ステンレス製 φ75', quantity: 8, unit: '箇所', unitPrice: 14500 },
     ],
     discount: 0,
+    sourceFile: { name: '見積書_〇〇電機本社棟_屋上防水_20260905.xlsx', importedAt: '2026-09-05T09:50:00' },
     terms: terms({
       startDate: '2026-10-12',
       endDate: '2026-11-27',
-      advancePayment: '出来形50％到達時に請負代金の40％を出来形払とする',
-      paymentMethod: '引渡し後、請求書受領月の翌月末に銀行振込',
+      paymentMethod: '引渡し後、月末締め翌月末 銀行振込',
     }),
-    documents: buildDocs(
-      '0037',
-      { quote: 'sent', order: 'none', acceptance: 'none', terms: 'none' },
-      { quote: '2026-09-05' },
-    ),
+    documents: buildDocs('0037', { quote: 'created', order: 'none', acceptance: 'none', terms: 'none' }, { quote: '2026-09-05' }),
     revision: 1,
     history: history([
-      ['2026-09-05T09:50:00', '藤代 悠斗', '見積書 EST-2026-0037 を作成しました'],
-      ['2026-09-05T13:25:00', '藤代 悠斗', '見積書を発注者へ送付しました'],
+      ['2026-09-05T09:50:00', '藤代 悠斗', '見積書ファイル「見積書_〇〇電機本社棟_屋上防水_20260905.xlsx」を取り込みました'],
     ]),
-    updatedAt: '2026-09-05T13:25:00',
+    updatedAt: '2026-09-05T09:50:00',
   },
   {
     id: 'kj-0038',
     no: 'KJ-2026-0038',
     title: '〇〇倉庫 夜間 照明LED化工事',
     dealKind: 'receive',
-    status: 'draft',
+    status: 'imported',
     partnerId: 'p-05',
     site: '東京都江戸川区〇〇0-0-0 〇〇第3倉庫',
     scope: '既存水銀灯の撤去、高天井用LED照明への交換、点灯確認',
@@ -401,16 +492,18 @@ export const sampleProjects: Project[] = [
       { id: 'it-3', name: '高所作業車費用', spec: '12m級・オペレーター共', quantity: 4, unit: '日', unitPrice: 58000 },
     ],
     discount: 0,
+    sourceFile: { name: '見積書_〇〇第3倉庫_照明LED化_20260909.xlsx', importedAt: '2026-09-09T17:05:00' },
     terms: terms({
       startDate: '',
       endDate: '',
-      nonWorkingDays: '倉庫稼働時間帯（8:00〜20:00）は施工しない',
-      advancePayment: '',
+      nonWorkingDays: '倉庫稼働時間帯（8:00〜20:00）',
       paymentMethod: '',
     }),
     documents: buildDocs('0038', { quote: 'created', order: 'none', acceptance: 'none', terms: 'none' }, { quote: '2026-09-09' }),
     revision: 1,
-    history: history([['2026-09-09T17:05:00', '中村 遥', '見積書 EST-2026-0038 を作成しました']]),
+    history: history([
+      ['2026-09-09T17:05:00', '中村 遥', '見積書ファイル「見積書_〇〇第3倉庫_照明LED化_20260909.xlsx」を取り込みました'],
+    ]),
     updatedAt: '2026-09-09T17:05:00',
   },
   {
@@ -431,25 +524,24 @@ export const sampleProjects: Project[] = [
       { id: 'it-3', name: '床塩ビシート張替え', spec: '2.0mm 耐荷重仕様 84㎡', quantity: 84, unit: '㎡', unitPrice: 5600 },
     ],
     discount: 0,
+    sourceFile: { name: '見積書_〇〇工務店_内装復旧_20260818.xlsx', importedAt: '2026-08-18T10:00:00' },
     terms: terms({
       startDate: '2026-10-19',
       endDate: '2026-10-30',
-      advancePayment: '前金払・出来形払は行わない',
-      paymentMethod: '引渡し後、当社締日に基づき翌月末に銀行振込（現金100％）',
-      defectLiability: '引渡しの日から2年間',
+      paymentMethod: '引渡し後、月末締め翌月末 銀行振込（当社支払）',
       termsTemplateId: 'tpl-subcon',
     }),
     documents: buildDocs(
       '0039',
-      { quote: 'sealed', order: 'sent', acceptance: 'sealed', terms: 'sealed' },
+      { quote: 'created', order: 'sent', acceptance: 'sealed', terms: 'sealed' },
       { quote: '2026-08-18', order: '2026-08-26', acceptance: '2026-08-28', terms: '2026-08-28' },
     ),
     revision: 1,
     history: history([
-      ['2026-08-18T10:00:00', '中村 遥', '協力会社から見積書を受領し EST-2026-0039 として登録しました'],
-      ['2026-08-26T09:30:00', '中村 遥', '見積書から注文書・注文請書・基本契約書（約款）を自動生成しました'],
+      ['2026-08-18T10:00:00', '中村 遥', '協力会社から受け取った見積書ファイル「見積書_〇〇工務店_内装復旧_20260818.xlsx」を取り込みました'],
+      ['2026-08-26T09:30:00', '中村 遥', '見積書の内容から注文書・注文請書・基本契約書（約款）を作成しました'],
       ['2026-08-26T14:15:00', '中村 遥', '注文書を協力会社へ送付しました'],
-      ['2026-08-28T11:45:00', '中村 遥', '押印済みの注文請書を受領し、契約成立としました'],
+      ['2026-08-28T11:45:00', '中村 遥', '押印済みの注文請書を受け取り、契約成立としました'],
     ]),
     updatedAt: '2026-08-28T11:45:00',
     bundleFileName: 'KJ-2026-0039_工事関係書類一式.pdf',
@@ -472,12 +564,12 @@ export const sampleProjects: Project[] = [
       { id: 'it-3', name: '諸経費', spec: '交通費・工具損料共', quantity: 1, unit: '式', unitPrice: 42000 },
     ],
     discount: 0,
+    sourceFile: { name: '見積書_〇〇設備工業_保温施工_20260901.xlsx', importedAt: '2026-09-01T15:20:00' },
     terms: terms({
       startDate: '2026-10-04',
       endDate: '2026-10-25',
-      nonWorkingDays: '工場稼働日は施工しない（施工は日曜日のみ）',
-      advancePayment: '前金払・出来形払は行わない',
-      paymentMethod: '',
+      nonWorkingDays: '工場稼働日（施工は日曜日のみ）',
+      paymentMethod: '引渡し後、20日締め翌月20日 銀行振込（当社支払）',
       termsTemplateId: 'tpl-subcon',
     }),
     documents: buildDocs(
@@ -487,8 +579,8 @@ export const sampleProjects: Project[] = [
     ),
     revision: 1,
     history: history([
-      ['2026-09-01T15:20:00', '藤代 悠斗', '協力会社から見積書を受領し EST-2026-0040 として登録しました'],
-      ['2026-09-08T10:10:00', '中村 遥', '見積書から注文書・注文請書・基本契約書（約款）を自動生成しました'],
+      ['2026-09-01T15:20:00', '藤代 悠斗', '協力会社から受け取った見積書ファイル「見積書_〇〇設備工業_保温施工_20260901.xlsx」を取り込みました'],
+      ['2026-09-08T10:10:00', '中村 遥', '見積書の内容から注文書・注文請書・基本契約書（約款）を作成しました'],
       ['2026-09-08T13:35:00', '中村 遥', '注文書を協力会社へ送付しました'],
     ]),
     updatedAt: '2026-09-08T13:35:00',
@@ -498,7 +590,7 @@ export const sampleProjects: Project[] = [
     no: 'KJ-2026-0041',
     title: '〇〇ビル 4階 間仕切り塗装工事（協力会社発注分）',
     dealKind: 'order',
-    status: 'draft',
+    status: 'imported',
     partnerId: 'p-08',
     site: '神奈川県横浜市西区〇〇0-0-0 〇〇ビル4F',
     scope: '新設間仕切り面の下地調整および塗装仕上げ',
@@ -510,17 +602,18 @@ export const sampleProjects: Project[] = [
       { id: 'it-2', name: 'AEP塗装', spec: '2回塗り 118㎡', quantity: 118, unit: '㎡', unitPrice: 2200 },
     ],
     discount: 0,
+    sourceFile: { name: '見積書_〇〇塗装工業_間仕切り塗装_20260908.xlsx', importedAt: '2026-09-08T16:45:00' },
     terms: terms({
       startDate: '',
       endDate: '',
-      advancePayment: '',
       paymentMethod: '',
-      defectLiability: '',
       termsTemplateId: 'tpl-subcon',
     }),
     documents: buildDocs('0041', { quote: 'created', order: 'none', acceptance: 'none', terms: 'none' }, { quote: '2026-09-08' }),
     revision: 1,
-    history: history([['2026-09-08T16:45:00', '中村 遥', '協力会社から見積書を受領し EST-2026-0041 として登録しました']]),
+    history: history([
+      ['2026-09-08T16:45:00', '中村 遥', '協力会社から受け取った見積書ファイル「見積書_〇〇塗装工業_間仕切り塗装_20260908.xlsx」を取り込みました'],
+    ]),
     updatedAt: '2026-09-08T16:45:00',
   },
   {
@@ -542,22 +635,22 @@ export const sampleProjects: Project[] = [
       { id: 'it-4', name: '部分塗装', spec: '水性シリコン 2回塗り 64㎡', quantity: 64, unit: '㎡', unitPrice: 3200 },
     ],
     discount: 120000,
+    sourceFile: { name: '見積書_〇〇マンション_外壁タイル補修_20260615.xlsx', importedAt: '2026-06-15T10:05:00' },
     terms: terms({
       startDate: '2026-07-06',
       endDate: '2026-08-21',
-      advancePayment: '契約成立後に請負代金の20％を前金払とする',
-      paymentMethod: '引渡し後、請求書受領月の翌月20日に銀行振込',
+      paymentMethod: '引渡し後、20日締め翌月20日 銀行振込',
     }),
     documents: buildDocs(
       '0028',
-      { quote: 'sent', order: 'sealed', acceptance: 'sealed', terms: 'sealed' },
+      { quote: 'created', order: 'sealed', acceptance: 'sealed', terms: 'sealed' },
       { quote: '2026-06-15', order: '2026-06-26', acceptance: '2026-06-30', terms: '2026-06-30' },
     ),
     revision: 1,
     history: history([
-      ['2026-06-15T10:05:00', '藤代 悠斗', '見積書 EST-2026-0028 を作成しました'],
-      ['2026-06-26T11:20:00', '藤代 悠斗', '見積書から注文書・注文請書・基本契約書（約款）を自動生成しました'],
-      ['2026-06-30T15:30:00', '中村 遥', '注文請書を送付し、受注確定としました'],
+      ['2026-06-15T10:05:00', '藤代 悠斗', '見積書ファイル「見積書_〇〇マンション_外壁タイル補修_20260615.xlsx」を取り込みました'],
+      ['2026-06-26T11:20:00', '藤代 悠斗', '見積書の内容から注文書・注文請書・基本契約書（約款）を作成しました'],
+      ['2026-06-30T15:30:00', '中村 遥', '注文請書を送付し、契約成立としました'],
       ['2026-08-21T17:00:00', '藤代 悠斗', '工事完了・引渡しを登録しました'],
     ]),
     updatedAt: '2026-08-21T17:00:00',
@@ -581,11 +674,11 @@ export const sampleProjects: Project[] = [
       { id: 'it-3', name: '結線・試験', spec: '絶縁抵抗測定・記録提出共', quantity: 1, unit: '式', unitPrice: 96000 },
     ],
     discount: 0,
+    sourceFile: { name: '見積書_〇〇電設_分電盤増設_20260629.xlsx', importedAt: '2026-06-29T09:15:00' },
     terms: terms({
       startDate: '2026-07-13',
       endDate: '2026-07-31',
-      advancePayment: '前金払・出来形払は行わない',
-      paymentMethod: '引渡し後、当社締日に基づき翌月末に銀行振込（現金100％）',
+      paymentMethod: '引渡し後、月末締め翌月末 銀行振込（当社支払）',
       termsTemplateId: 'tpl-subcon',
     }),
     documents: buildDocs(
@@ -595,12 +688,122 @@ export const sampleProjects: Project[] = [
     ),
     revision: 1,
     history: history([
-      ['2026-06-29T09:15:00', '中村 遥', '協力会社から見積書を受領し EST-2026-0030 として登録しました'],
-      ['2026-07-06T10:40:00', '中村 遥', '見積書から注文書・注文請書・基本契約書（約款）を自動生成しました'],
-      ['2026-07-08T14:05:00', '中村 遥', '押印済みの注文請書を受領し、契約成立としました'],
+      ['2026-06-29T09:15:00', '中村 遥', '協力会社から受け取った見積書ファイル「見積書_〇〇電設_分電盤増設_20260629.xlsx」を取り込みました'],
+      ['2026-07-06T10:40:00', '中村 遥', '見積書の内容から注文書・注文請書・基本契約書（約款）を作成しました'],
+      ['2026-07-08T14:05:00', '中村 遥', '押印済みの注文請書を受け取り、契約成立としました'],
       ['2026-07-31T16:20:00', '中村 遥', '工事完了・引渡しを登録しました'],
     ]),
     updatedAt: '2026-07-31T16:20:00',
     bundleFileName: 'KJ-2026-0030_工事関係書類一式.pdf',
+  },
+];
+
+/**
+ * 取込待ちの見積書ファイル。
+ * Excel で作成し共有フォルダへ保存した見積書を、システムが読み取る想定のサンプル。
+ */
+export const quoteFiles: QuoteFile[] = [
+  {
+    id: 'qf-01',
+    name: '見積書_〇〇建設_〇〇工場 排気ダクト更新_20260915.xlsx',
+    savedAt: '2026-09-15T14:05:00',
+    savedBy: '中村 遥',
+    sizeKb: 78,
+    read: {
+      dealKind: 'receive',
+      partnerId: 'p-01',
+      title: '〇〇工場 排気ダクト更新工事',
+      site: '東京都大田区〇〇0-0-0 〇〇工場 第2棟',
+      scope: '既存排気ダクトの撤去、亜鉛鉄板ダクトの新設、送風機の取替えおよび風量調整',
+      quotedOn: '2026-09-15',
+      quoteExpiry: '2026-10-15',
+      items: [
+        { id: 'qi-1', name: '既存ダクト撤去', spec: '亜鉛鉄板 500×300 約38m・処分共', quantity: 1, unit: '式', unitPrice: 268000 },
+        { id: 'qi-2', name: 'ダクト新設', spec: '亜鉛鉄板 600×400 保温25mm共 38m', quantity: 38, unit: 'm', unitPrice: 18600 },
+        { id: 'qi-3', name: '送風機取替え', spec: '有圧換気扇 φ500 三相200V', quantity: 3, unit: '台', unitPrice: 142000 },
+        { id: 'qi-4', name: '風量調整・試運転', spec: '測定記録の提出共', quantity: 1, unit: '式', unitPrice: 98000 },
+        { id: 'qi-5', name: '現場管理費', spec: '安全管理・仮設共', quantity: 1, unit: '式', unitPrice: 155000 },
+      ],
+      discount: 30000,
+      startDate: '',
+      endDate: '',
+      nonWorkingDays: '日曜日および年末年始（12/29〜1/3）',
+    },
+  },
+  {
+    id: 'qf-02',
+    name: '見積書_〇〇不動産_〇〇ビル 給水ポンプ更新_20260914.xlsx',
+    savedAt: '2026-09-14T17:40:00',
+    savedBy: '藤代 悠斗',
+    sizeKb: 66,
+    read: {
+      dealKind: 'receive',
+      partnerId: 'p-02',
+      title: '〇〇ビル 給水ポンプユニット更新工事',
+      site: '神奈川県横浜市西区〇〇0-0-0 〇〇ビル 地下機械室',
+      scope: '既存給水ポンプユニットの撤去・搬出、新設ユニットの据付、配管接続および試運転',
+      quotedOn: '2026-09-14',
+      quoteExpiry: '2026-10-14',
+      items: [
+        { id: 'qi-1', name: '既存ポンプ撤去・搬出', spec: '加圧給水ユニット 2.2kW×2・処分共', quantity: 1, unit: '式', unitPrice: 185000 },
+        { id: 'qi-2', name: '給水ポンプユニット設置', spec: 'インバータ式 2.2kW×2 制御盤共', quantity: 1, unit: '基', unitPrice: 1280000 },
+        { id: 'qi-3', name: '配管接続工事', spec: 'SUS304 50A フレキ継手共', quantity: 1, unit: '式', unitPrice: 246000 },
+        { id: 'qi-4', name: '電気接続・試運転', spec: '絶縁測定・水質確認共', quantity: 1, unit: '式', unitPrice: 132000 },
+      ],
+      discount: 0,
+      startDate: '',
+      endDate: '',
+      nonWorkingDays: '日曜日および年末年始（12/29〜1/3）',
+    },
+  },
+  {
+    id: 'qf-03',
+    name: '見積書_〇〇工務店_〇〇工場 床補修（協力会社）_20260913.xlsx',
+    savedAt: '2026-09-13T11:20:00',
+    savedBy: '有限会社〇〇工務店',
+    sizeKb: 54,
+    read: {
+      dealKind: 'order',
+      partnerId: 'p-06',
+      title: '〇〇工場 第2棟 床モルタル補修工事（協力会社発注分）',
+      site: '東京都大田区〇〇0-0-0 〇〇工場 第2棟',
+      scope: 'ダクト更新に伴う床の斫り跡補修、モルタル金ゴテ仕上げ、塗床部分補修',
+      quotedOn: '2026-09-13',
+      quoteExpiry: '2026-10-13',
+      items: [
+        { id: 'qi-1', name: '斫り跡はつり・清掃', spec: '施工面積 46㎡', quantity: 46, unit: '㎡', unitPrice: 2400 },
+        { id: 'qi-2', name: 'モルタル補修', spec: '厚30mm 金ゴテ仕上げ 46㎡', quantity: 46, unit: '㎡', unitPrice: 5800 },
+        { id: 'qi-3', name: '塗床部分補修', spec: 'エポキシ樹脂系 2回塗り 46㎡', quantity: 46, unit: '㎡', unitPrice: 4200 },
+      ],
+      discount: 0,
+      startDate: '',
+      endDate: '',
+      nonWorkingDays: '日曜日および年末年始（12/29〜1/3）',
+    },
+  },
+  {
+    id: 'qf-04',
+    name: '見積書_〇〇塗装工業_〇〇ビル 機械室塗装（協力会社）_20260912.xlsx',
+    savedAt: '2026-09-12T16:10:00',
+    savedBy: '〇〇塗装工業株式会社',
+    sizeKb: 48,
+    read: {
+      dealKind: 'order',
+      partnerId: 'p-08',
+      title: '〇〇ビル 地下機械室 内壁塗装工事（協力会社発注分）',
+      site: '神奈川県横浜市西区〇〇0-0-0 〇〇ビル 地下機械室',
+      scope: 'ポンプ更新に伴う機械室内壁のケレン・下地調整および防カビ塗装',
+      quotedOn: '2026-09-12',
+      quoteExpiry: '2026-10-12',
+      items: [
+        { id: 'qi-1', name: 'ケレン・下地調整', spec: '施工面積 96㎡', quantity: 96, unit: '㎡', unitPrice: 1300 },
+        { id: 'qi-2', name: '防カビ塗装', spec: '水性アクリル 2回塗り 96㎡', quantity: 96, unit: '㎡', unitPrice: 2600 },
+        { id: 'qi-3', name: '養生・清掃', spec: '機器養生・産廃処分共', quantity: 1, unit: '式', unitPrice: 62000 },
+      ],
+      discount: 0,
+      startDate: '',
+      endDate: '',
+      nonWorkingDays: '日曜日および年末年始（12/29〜1/3）',
+    },
   },
 ];
