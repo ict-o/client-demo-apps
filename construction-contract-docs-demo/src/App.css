@@ -937,6 +937,313 @@ table.data tbody tr.clickable:active { background: var(--accent-light); }
 .fs-15 { font-size: 16.5px; }
 .fs-17 { font-size: 19px; }
 
+/* ===== ガイドツアー（はじめての方向け） ===== */
+.guide-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--card);
+  border: 1px solid var(--accent);
+  color: var(--accent-dark);
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 14.5px;
+  font-weight: 700;
+  min-height: 44px;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.05s;
+}
+.guide-open:hover { background: var(--accent-light); }
+.guide-open:active { transform: translateY(1px); }
+.guide-open-mark {
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex: none;
+}
+
+.guide-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(16, 24, 33, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: guideFade 0.18s ease;
+}
+@keyframes guideFade { from { opacity: 0; } to { opacity: 1; } }
+
+.guide {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 720px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 26px 30px 22px;
+}
+@media (max-width: 640px) { .guide { padding: 20px 16px 18px; } }
+
+.guide-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 14px;
+}
+.guide-head-right { display: flex; align-items: center; gap: 10px; flex: none; }
+.guide-kicker {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 999px;
+}
+.guide-title { font-size: 23px; font-weight: 700; color: var(--text); margin-top: 8px; line-height: 1.4; }
+.guide-count { font-size: 15px; font-weight: 700; color: var(--text-sub); font-variant-numeric: tabular-nums; }
+.guide-close {
+  background: none;
+  border: 1px solid var(--border-strong);
+  color: var(--text-sub);
+  font-size: 22px;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--radius-md);
+}
+.guide-close:hover { background: var(--bg-alt); color: var(--text); }
+
+.guide-body { padding: 18px 0 4px; }
+.guide-text { font-size: 17px; line-height: 1.85; color: var(--text); }
+.guide-figure { margin-top: 18px; }
+
+.guide-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 18px;
+}
+.guide-dots { display: flex; gap: 2px; }
+/* 見た目は小さな点だが、押せる範囲は 44px 角を確保する */
+.guide-dot {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  position: relative;
+  padding: 0;
+}
+.guide-dot::after {
+  content: '';
+  position: absolute;
+  inset: 17px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: background 0.15s, inset 0.15s;
+}
+.guide-dot:hover::after { background: var(--text-muted); }
+.guide-dot.active::after { inset: 15px; background: var(--accent); }
+.guide-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-left: auto; }
+.guide-note { font-size: 13.5px; color: var(--text-sub); margin-top: 12px; text-align: center; }
+
+/* ガイド内の簡易図 */
+.gfig {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+.gfig-caption { font-size: 13.5px; color: var(--text-sub); margin-top: 12px; text-align: center; }
+.gfig-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.gfig-arrow { font-size: 22px; color: var(--text-muted); }
+.gfig-file {
+  background: var(--card);
+  border: 2px solid var(--success);
+  border-radius: var(--radius-md);
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 12px 14px;
+  text-align: center;
+  line-height: 1.5;
+}
+.gfig-sys {
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 16px;
+}
+.gfig-docs { display: flex; flex-direction: column; gap: 5px; }
+.gfig-doc {
+  background: var(--card);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-sub);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 13px;
+  text-align: center;
+}
+.gfig-doc.on { border-style: solid; border-color: var(--success-border); background: var(--success-light); color: var(--success); }
+
+.gfig-nav {
+  display: flex;
+  gap: 22px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+  overflow-x: auto;
+}
+.gfig-nav .on {
+  color: var(--accent-dark);
+  font-weight: 700;
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 3px;
+  white-space: nowrap;
+}
+.gfig-nav span { white-space: nowrap; }
+
+.gfig-filerow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.gfig-xls {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--success);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  flex: none;
+}
+.gfig-filetext { flex: 1; min-width: 160px; }
+.gfig-filename { display: block; font-size: 14px; font-weight: 700; color: var(--text); word-break: break-all; }
+.gfig-filemeta { display: block; font-size: 12.5px; color: var(--text-sub); }
+.gfig-cta {
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 9px 15px;
+  white-space: nowrap;
+}
+.gfig-cta.big { font-size: 15px; padding: 12px 22px; align-self: flex-start; }
+
+.gfig-next {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  background: var(--card);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+}
+.gfig-nextlabel {
+  background: var(--accent);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 2px 11px;
+  border-radius: 999px;
+}
+.gfig-nexttitle { font-size: 15px; font-weight: 700; color: var(--text); }
+
+.gfig-flow { display: flex; gap: 8px; flex-wrap: wrap; }
+.gfig-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 140px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.gfig-step.done { background: var(--success-light); border-color: var(--success-border); color: var(--success); }
+.gfig-step.now { background: var(--accent); border-color: var(--accent); color: #fff; }
+.gfig-stepno {
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--bg-alt);
+  color: var(--text-sub);
+}
+.gfig-step.done .gfig-stepno { background: var(--success); color: #fff; }
+.gfig-step.now .gfig-stepno { background: rgba(255, 255, 255, 0.26); color: #fff; }
+
+.gfig-hints { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.gfig-hints li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 13px 15px;
+  font-size: 14.5px;
+  color: var(--text);
+  flex-wrap: wrap;
+}
+.gfig-hintbadge {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex: none;
+}
+.gfig-hintbadge.next { background: var(--accent); color: #fff; }
+.gfig-hintbadge.check { background: var(--warning-light); color: var(--warning-strong); border: 1px solid var(--warning-border); }
+.gfig-hintbadge.flow { background: var(--success-light); color: var(--success); border: 1px solid var(--success-border); }
+
 /* ===== 印刷（プレビューの帳票のみを出力する） ===== */
 @media print {
   body { background: #fff; }

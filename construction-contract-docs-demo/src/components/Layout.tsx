@@ -4,6 +4,8 @@ import { CURRENT_USER, OWN_COMPANY } from '../data/sampleData';
 
 interface LayoutProps {
   children: React.ReactNode;
+  /** ヘッダーの「使い方」からガイドツアーを開き直す */
+  onOpenGuide: () => void;
 }
 
 const NAV = [
@@ -12,7 +14,7 @@ const NAV = [
   { label: '取引先', path: '/partners' },
 ];
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, onOpenGuide }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -36,6 +38,10 @@ export function Layout({ children }: LayoutProps) {
           </button>
 
           <div className="viewer">
+            <button className="guide-open" onClick={onOpenGuide}>
+              <span className="guide-open-mark" aria-hidden="true">?</span>
+              使い方
+            </button>
             <div className="viewer-name">
               <div className="viewer-name-main">{CURRENT_USER.name} さん</div>
               <div className="viewer-name-sub">{CURRENT_USER.department}</div>

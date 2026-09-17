@@ -5,6 +5,7 @@ import { partners as initialPartners, sampleProjects, CURRENT_USER } from './dat
 import { generateDocuments } from './utils/docs';
 import { nowIso, todayIso } from './utils/format';
 import { Layout } from './components/Layout';
+import { GuideTour } from './components/GuideTour';
 import { ToastContainer, type ToastState } from './components/Toast';
 import { ProjectList } from './pages/ProjectList';
 import { ProjectDetail } from './pages/ProjectDetail';
@@ -40,6 +41,8 @@ export default function App() {
   const [projects, setProjects] = useState<Project[]>(sampleProjects);
   const [partners, setPartners] = useState<Partner[]>(initialPartners);
   const [toast, setToast] = useState<ToastState | null>(null);
+  // はじめて画面を開いたときはガイドを出す（再読み込みでまた表示され、商談のたびに最初から見せられる）
+  const [guideOpen, setGuideOpen] = useState(true);
 
   const showToast = useCallback((message: string, type: ToastState['type'] = 'success') => {
     setToast({ message, type });
@@ -192,7 +195,7 @@ export default function App() {
 
   return (
     <HashRouter>
-      <Layout>
+      <Layout onOpenGuide={() => setGuideOpen(true)}>
         <Routes>
           <Route path="/" element={<ProjectList projects={projects} partners={partners} />} />
           <Route
@@ -209,6 +212,7 @@ export default function App() {
           />
         </Routes>
       </Layout>
+      {guideOpen && <GuideTour onClose={() => setGuideOpen(false)} />}
       <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </HashRouter>
   );
