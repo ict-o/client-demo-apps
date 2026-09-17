@@ -67,7 +67,7 @@ export function Modal({ isOpen, onClose, title, children, footer, width = 520, b
         <div
           className="no-print"
           style={{
-            padding: '18px 24px 14px',
+            padding: '18px 24px 15px',
             borderBottom: '1px solid var(--border)',
             display: 'flex',
             alignItems: 'center',
@@ -75,29 +75,31 @@ export function Modal({ isOpen, onClose, title, children, footer, width = 520, b
             gap: '12px',
           }}
         >
-          <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text)' }}>{title}</h2>
+          <h2 style={{ fontSize: '19px', fontWeight: 700, color: 'var(--text)' }}>{title}</h2>
           <button
             onClick={onClose}
             aria-label="閉じる"
             style={{
               background: 'none',
-              border: 'none',
+              border: '1px solid var(--border-strong)',
               fontSize: '22px',
               color: 'var(--text-sub)',
               lineHeight: 1,
-              padding: '2px 6px',
-              borderRadius: 'var(--radius-sm)',
+              width: '44px',
+              height: '44px',
+              flex: 'none',
+              borderRadius: 'var(--radius-md)',
             }}
           >
             &times;
           </button>
         </div>
-        <div className={bodyClassName} style={{ padding: '20px 24px', overflowY: 'auto' }}>{children}</div>
+        <div className={bodyClassName} style={{ padding: '22px 24px', overflowY: 'auto' }}>{children}</div>
         {footer && (
           <div
             className="no-print"
             style={{
-              padding: '14px 24px',
+              padding: '16px 24px',
               borderTop: '1px solid var(--border)',
               display: 'flex',
               justifyContent: 'flex-end',

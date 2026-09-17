@@ -13,7 +13,7 @@ interface ToastProps {
 export function ToastContainer({ toast, onClose }: ToastProps) {
   useEffect(() => {
     if (!toast) return;
-    const timer = setTimeout(onClose, 3600);
+    const timer = setTimeout(onClose, 4600);
     return () => clearTimeout(timer);
   }, [toast, onClose]);
 
@@ -37,10 +37,10 @@ export function ToastContainer({ toast, onClose }: ToastProps) {
         zIndex: 9999,
         background: bg,
         color: '#fff',
-        padding: '12px 22px',
+        padding: '16px 26px',
         borderRadius: 'var(--radius-md)',
         boxShadow: 'var(--shadow-lg)',
-        fontSize: '13px',
+        fontSize: '16px',
         fontWeight: 600,
         letterSpacing: '0.02em',
         maxWidth: '90vw',
@@ -56,7 +56,21 @@ export function ToastContainer({ toast, onClose }: ToastProps) {
           to   { opacity: 1; transform: translate(-50%, 0); }
         }
       `}</style>
-      <span aria-hidden="true">{toast.type === 'error' ? '!' : '✓'}</span>
+      <span
+        aria-hidden="true"
+        style={{
+          width: '24px',
+          height: '24px',
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.25)',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flex: 'none',
+        }}
+      >
+        {toast.type === 'error' ? '!' : '✓'}
+      </span>
       {toast.message}
     </div>
   );

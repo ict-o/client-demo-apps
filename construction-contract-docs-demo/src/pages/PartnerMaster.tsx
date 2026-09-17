@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Partner, PartnerKind, Project } from '../types';
-import { PARTNER_KIND_LABELS } from '../types';
+import { PARTNER_KIND_LABELS, PARTNER_KIND_SHORT } from '../types';
 import { EmptyState } from '../components/EmptyState';
 import { Modal } from '../components/Modal';
 
@@ -19,10 +19,8 @@ const EMPTY: Omit<Partner, 'id'> = {
   postalCode: '',
   address: '',
   tel: '',
-  email: '',
   licenseNo: '',
   paymentTerms: '',
-  note: '',
 };
 
 export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
@@ -70,49 +68,60 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
     setEditing(null);
   };
 
+  const filterApplied = Boolean(keyword.trim()) || kind !== 'all';
+
   return (
     <>
       <div className="page-head">
         <div>
-          <h1 className="page-title">取引先マスタ</h1>
-          <div className="page-sub">
-            ここで登録した会社名・所在地・支払条件が、見積書・注文書・注文請書・約款へ自動反映されます（全 {partners.length} 件）
-          </div>
+          <h1 className="page-title">取引先</h1>
+          <p className="page-sub">
+            ここで登録した会社名・所在地・支払条件が、見積書・注文書・注文請書・約款にそのまま印字されます（全 {partners.length} 件）
+          </p>
         </div>
-        <button className="btn btn-primary" onClick={openNew}>＋ 取引先を登録</button>
+        <button className="btn btn-primary btn-lg" onClick={openNew}>取引先を登録する</button>
       </div>
 
       <div className="filter-bar">
         <div className="search">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <circle cx="11" cy="11" r="7" />
             <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
           </svg>
-          <label htmlFor="pkw" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
-            取引先の検索
-          </label>
-          <input id="pkw" className="input" value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="会社名・担当者名・所在地で検索" />
+          <label htmlFor="pkw" className="visually-hidden">取引先の検索</label>
+          <input id="pkw" className="input" value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="会社名・担当者名で探す" />
         </div>
-        <select className="select" style={{ width: 'auto' }} value={kind} onChange={e => setKind(e.target.value as PartnerKind | 'all')} aria-label="区分で絞り込み">
-          <option value="all">区分：すべて</option>
-          <option value="client">発注者（得意先）</option>
-          <option value="subcontractor">協力会社（下請）</option>
-        </select>
-        {(keyword.trim() || kind !== 'all') && (
-          <button className="btn btn-ghost btn-sm" onClick={() => { setKeyword(''); setKind('all'); }}>
-            絞り込みを解除
-          </button>
-        )}
+        <div className="chips" role="group" aria-label="取引先の種類で絞り込み">
+          {(['all', 'client', 'subcontractor'] as const).map(k => (
+            <button
+              key={k}
+              className={kind === k ? 'chip active' : 'chip'}
+              onClick={() => setKind(k)}
+              aria-pressed={kind === k}
+            >
+              {k === 'all' ? 'すべて' : PARTNER_KIND_SHORT[k]}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="fs-12 text-sub mb-8">{filtered.length} 件を表示中</div>
+      <div className="list-count">{filtered.length} 件を表示しています</div>
 
       {filtered.length === 0 ? (
         <div className="card">
           <EmptyState
             title="該当する取引先はありません"
-            desc="検索条件を変更するか、新しく取引先を登録してください。"
-            action={<button className="btn btn-secondary btn-sm" onClick={openNew}>取引先を登録する</button>}
+            desc="検索の文字を変えるか、新しく取引先を登録してください。"
+            action={
+              <div className="row gap-10 wrap" style={{ justifyContent: 'center' }}>
+                {filterApplied && (
+                  <button className="btn btn-secondary" onClick={() => { setKeyword(''); setKind('all'); }}>
+                    すべての取引先を表示する
+                  </button>
+                )}
+                <button className="btn btn-primary" onClick={openNew}>取引先を登録する</button>
+              </div>
+            }
           />
         </div>
       ) : (
@@ -120,37 +129,37 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
           <table className="data">
             <thead>
               <tr>
-                <th>会社名 / 区分</th>
+                <th>会社名</th>
                 <th>担当者</th>
-                <th>所在地 / 連絡先</th>
+                <th>所在地・電話番号</th>
                 <th>建設業許可番号</th>
                 <th>支払条件</th>
-                <th className="num">関連案件</th>
+                <th className="num">案件数</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(p => (
                 <tr key={p.id} className="clickable" onClick={() => openEdit(p)}>
-                  <td>
+                  <td style={{ minWidth: '210px' }}>
                     <div className="fw-600">{p.name}</div>
                     <span className={p.kind === 'subcontractor' ? 'tag tag-order mt-4' : 'tag tag-receive mt-4'}>
-                      {PARTNER_KIND_LABELS[p.kind]}
+                      {PARTNER_KIND_SHORT[p.kind]}
                     </span>
                   </td>
                   <td>
                     <div>{p.contactName} 様</div>
-                    <div className="fs-12 text-sub">{p.department}</div>
+                    <div className="fs-13 text-sub">{p.department}</div>
                   </td>
-                  <td style={{ minWidth: '230px' }}>
-                    <div className="fs-12">〒{p.postalCode} {p.address}</div>
-                    <div className="fs-12 text-sub">TEL {p.tel}</div>
+                  <td style={{ minWidth: '240px' }}>
+                    <div className="fs-14">〒{p.postalCode} {p.address}</div>
+                    <div className="fs-13 text-sub">TEL {p.tel}</div>
                   </td>
-                  <td className="fs-12">
+                  <td className="fs-14">
                     {p.licenseNo ? p.licenseNo : p.kind === 'subcontractor'
-                      ? <span style={{ color: 'var(--error)', fontWeight: 600 }}>未登録（要確認）</span>
+                      ? <span className="text-error fw-600">未登録（要確認）</span>
                       : <span className="text-sub">—</span>}
                   </td>
-                  <td className="fs-12">{p.paymentTerms || <span className="text-sub">—</span>}</td>
+                  <td className="fs-14">{p.paymentTerms || <span className="text-sub">—</span>}</td>
                   <td className="num">{projectCount.get(p.id) ?? 0} 件</td>
                 </tr>
               ))}
@@ -162,11 +171,11 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
       <Modal
         isOpen={editing !== null}
         onClose={() => setEditing(null)}
-        title={isNew ? '取引先の新規登録' : '取引先情報の編集'}
-        width={640}
+        title={isNew ? '取引先を登録する' : '取引先の情報を直す'}
+        width={660}
         footer={
           <>
-            <button className="btn btn-secondary" onClick={() => setEditing(null)}>キャンセル</button>
+            <button className="btn btn-secondary" onClick={() => setEditing(null)}>やめる</button>
             <button className="btn btn-primary" onClick={save}>保存する</button>
           </>
         }
@@ -175,27 +184,16 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
           <>
             <div className="alert alert-info mb-16">
               <span aria-hidden="true">i</span>
-              <div>保存した内容は、この取引先の見積書・注文書・注文請書・約款の記載へ自動的に反映されます。</div>
+              <div>保存した内容は、この取引先の見積書・注文書・注文請書・約款の記載にそのまま反映されます。</div>
             </div>
 
             <div className="field">
-              <span className="field-label">区分</span>
+              <span className="field-label">取引先の種類</span>
               <div className="row gap-10 wrap">
                 {(['client', 'subcontractor'] as PartnerKind[]).map(k => (
-                  <label
-                    key={k}
-                    className="row gap-8"
-                    style={{
-                      border: `1px solid ${editing.kind === k ? 'var(--accent)' : 'var(--border-strong)'}`,
-                      background: editing.kind === k ? 'var(--accent-soft)' : 'var(--card)',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '10px 14px',
-                      cursor: 'pointer',
-                      minHeight: '44px',
-                    }}
-                  >
+                  <label key={k} className={editing.kind === k ? 'radio-card active' : 'radio-card'}>
                     <input type="radio" name="pkind" checked={editing.kind === k} onChange={() => setEditing({ ...editing, kind: k })} />
-                    <span className="fs-13 fw-600">{PARTNER_KIND_LABELS[k]}</span>
+                    <span className="fs-15 fw-600">{PARTNER_KIND_LABELS[k]}</span>
                   </label>
                 ))}
               </div>
@@ -205,7 +203,7 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
               <label className="field-label" htmlFor="p-name">会社名<span className="req">必須</span></label>
               <input id="p-name" className={errors.name ? 'input invalid' : 'input'} value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
               {errors.name && <span className="field-error">{errors.name}</span>}
-              <div className="field-hint">デモ用のため、会社名の固有部分は「〇〇」で表記しています。</div>
+              <p className="field-hint">デモ用のため、会社名の固有部分は「〇〇」で表記しています。</p>
             </div>
 
             <div className="form-grid">
@@ -239,26 +237,17 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
             </div>
 
             <div className="field">
-              <label className="field-label" htmlFor="p-mail">メールアドレス</label>
-              <input id="p-mail" className="input" value={editing.email} onChange={e => setEditing({ ...editing, email: e.target.value })} />
+              <label className="field-label" htmlFor="p-pay">支払条件</label>
+              <input id="p-pay" className="input" value={editing.paymentTerms} onChange={e => setEditing({ ...editing, paymentTerms: e.target.value })} />
+              <p className="field-hint">見積書を取り込むとき、代金の支払い方法にこの内容が自動で入ります。</p>
             </div>
 
             <div className="field">
               <label className="field-label" htmlFor="p-lic">建設業許可番号</label>
               <input id="p-lic" className="input" value={editing.licenseNo} onChange={e => setEditing({ ...editing, licenseNo: e.target.value })} />
-              <div className="field-hint">
-                協力会社へ発注する場合、許可番号の確認・記録が必要です（未登録の場合は法令チェックで不足として表示されます）。
-              </div>
-            </div>
-
-            <div className="field">
-              <label className="field-label" htmlFor="p-pay">支払条件</label>
-              <input id="p-pay" className="input" value={editing.paymentTerms} onChange={e => setEditing({ ...editing, paymentTerms: e.target.value })} />
-            </div>
-
-            <div className="field">
-              <label className="field-label" htmlFor="p-note">備考</label>
-              <textarea id="p-note" className="textarea" value={editing.note} onChange={e => setEditing({ ...editing, note: e.target.value })} />
+              <p className="field-hint">
+                協力会社へ工事を発注する場合は、許可番号の確認と記録が必要です（未登録だと案件画面で不足として表示されます）。
+              </p>
             </div>
           </>
         )}
