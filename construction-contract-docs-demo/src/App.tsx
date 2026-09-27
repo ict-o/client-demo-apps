@@ -20,11 +20,9 @@ function nextId(prefix: string) {
 export interface ProjectActions {
   /** 見積書の内容から注文書・注文請書・約款を作る */
   generateDocs: (projectId: string) => void;
-  /** 書類を送付済みにする */
-  sendDoc: (projectId: string, kind: DocKind) => void;
-  /** 押印済み書類の受領を登録する */
-  receiveSealed: (projectId: string, kind: DocKind) => void;
-  /** 注文請書を送付して契約成立にする（受注案件） */
+  /** お客様から押印済みの注文書を受け取ったことを登録する */
+  receiveSealedOrder: (projectId: string) => void;
+  /** 注文請書を送付して契約成立にする */
   confirmAcceptance: (projectId: string) => void;
   /** 工事完了・引渡しを登録する */
   completeProject: (projectId: string) => void;
@@ -80,40 +78,13 @@ export default function App() {
         showToast('注文書・注文請書・基本契約書（約款）を作成しました');
       },
 
-      sendDoc: (projectId, kind) => {
-        const label = kind === 'order' ? '注文書' : kind === 'acceptance' ? '注文請書' : '基本契約書（約款）';
+      receiveSealedOrder: projectId => {
         mutate(
           projectId,
-          p => {
-            const next = setDocStatus(p, kind, 'sent');
-            // 協力会社への発注では、注文書を送った時点で「注文書を送付済み」に進める
-            if (kind === 'order' && p.dealKind === 'order' && p.status === 'imported') {
-              return { ...next, status: 'ordered' };
-            }
-            return next;
-          },
-          `${label}を送付しました`,
+          p => ({ ...setDocStatus(p, 'order', 'sealed'), status: 'ordered' }),
+          '押印済みの注文書を受け取りました',
         );
-        showToast(`${label}を送付しました`);
-      },
-
-      receiveSealed: (projectId, kind) => {
-        const label = kind === 'order' ? '注文書' : kind === 'acceptance' ? '注文請書' : '基本契約書（約款）';
-        mutate(
-          projectId,
-          p => {
-            let next = setDocStatus(p, kind, 'sealed');
-            if (kind === 'order' && p.dealKind === 'receive') {
-              next = { ...next, status: 'ordered' };
-            }
-            if (kind === 'acceptance' && p.dealKind === 'order') {
-              next = { ...setDocStatus(next, 'terms', 'sealed'), status: 'accepted' };
-            }
-            return next;
-          },
-          `押印済みの${label}を受け取りました`,
-        );
-        showToast(`押印済みの${label}を受け取りました`);
+        showToast('押印済みの注文書を受け取りました');
       },
 
       confirmAcceptance: projectId => {

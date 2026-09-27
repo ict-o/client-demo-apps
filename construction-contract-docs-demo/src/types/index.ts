@@ -1,35 +1,14 @@
 // 工事契約書類管理システム — 型定義
 
-/** 取引区分: 顧客から受注する案件か、協力会社へ発注する案件か */
-export type DealKind = 'receive' | 'order';
-
-export const DEAL_KIND_LABELS: Record<DealKind, string> = {
-  receive: '受注（お客様からの工事）',
-  order: '発注（協力会社への工事）',
-};
-
-/** 一覧のタグなど、短く表示したいとき */
-export const DEAL_KIND_SHORT: Record<DealKind, string> = {
-  receive: '受注',
-  order: '発注',
-};
-
 /** 案件（＝書類セット1件）のステータス */
 export type ProjectStatus = 'imported' | 'ordered' | 'accepted' | 'completed';
 
-/** 取引区分に応じた表示名（受注と発注で書類の向きが逆になるため） */
-export function projectStatusLabel(status: ProjectStatus, dealKind: DealKind): string {
-  switch (status) {
-    case 'imported':
-      return '見積書を取込済み';
-    case 'ordered':
-      return dealKind === 'order' ? '注文書を送付済み' : '注文書を受領済み';
-    case 'accepted':
-      return '契約成立';
-    case 'completed':
-      return '工事完了';
-  }
-}
+export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
+  imported: '見積書を取込済み',
+  ordered: '注文書を受領済み',
+  accepted: '契約成立',
+  completed: '工事完了',
+};
 
 export const PROJECT_STATUS_TONE: Record<ProjectStatus, string> = {
   imported: 'info',
@@ -39,16 +18,7 @@ export const PROJECT_STATUS_TONE: Record<ProjectStatus, string> = {
 };
 
 /** 業務の進み具合（画面上部のステップ表示用）。案件詳細の「次にやること」と1対1で対応する */
-export const FLOW_STEPS: { label: string; labelReceive?: string; labelOrder?: string }[] = [
-  { label: '見積書の取り込み' },
-  { label: '3つの書類を作る' },
-  {
-    label: '注文書・注文請書',
-    labelReceive: '注文書をもらう・請書を出す',
-    labelOrder: '注文書を出す・請書をもらう',
-  },
-  { label: '工事完了' },
-];
+export const FLOW_STEPS: string[] = ['見積書の取り込み', '3つの書類を作る', '注文書をもらう・請書を出す', '工事完了'];
 
 /**
  * いまどのステップにいるかを返す。
@@ -118,24 +88,11 @@ export interface QuoteItem {
   unitPrice: number;
 }
 
-/** 取引先（発注者 / 協力会社） */
-export type PartnerKind = 'client' | 'subcontractor';
-
-export const PARTNER_KIND_LABELS: Record<PartnerKind, string> = {
-  client: 'お客様（工事を受注する相手）',
-  subcontractor: '協力会社（工事を発注する相手）',
-};
-
-export const PARTNER_KIND_SHORT: Record<PartnerKind, string> = {
-  client: 'お客様',
-  subcontractor: '協力会社',
-};
-
+/** 取引先（工事を注文するお客様） */
 export interface Partner {
   id: string;
   /** 会社名（架空。固有部分は 〇〇 で伏せる） */
   name: string;
-  kind: PartnerKind;
   /** 部署 */
   department: string;
   /** 先方担当者名 */
@@ -143,8 +100,6 @@ export interface Partner {
   postalCode: string;
   address: string;
   tel: string;
-  /** 建設業許可番号（協力会社のみ保持。未取得なら空） */
-  licenseNo: string;
   /** 支払条件（書類へ自動反映） */
   paymentTerms: string;
 }
@@ -163,8 +118,6 @@ export interface ContractTerms {
   nonWorkingDays: string;
   /** 代金の支払時期・方法（取引先マスタから自動で入る） */
   paymentMethod: string;
-  /** 適用する約款テンプレート */
-  termsTemplateId: string;
 }
 
 export interface HistoryEntry {
@@ -188,9 +141,8 @@ export interface Project {
   no: string;
   /** 工事名称 */
   title: string;
-  dealKind: DealKind;
   status: ProjectStatus;
-  /** 取引先ID（受注なら発注者、発注なら協力会社） */
+  /** 取引先ID（工事を注文するお客様） */
   partnerId: string;
   /** 工事場所 */
   site: string;
@@ -227,8 +179,6 @@ export interface ComplianceItem {
   value: string;
   /** 未充足時に何をすればよいか（日本語） */
   hint: string;
-  /** 根拠となる法令（補足表示） */
-  clause: string;
 }
 
 /** 取込待ちの見積書ファイル（共有フォルダに保存された Excel 見積書を想定） */
@@ -238,7 +188,7 @@ export interface QuoteFile {
   name: string;
   /** 保存日時（ISO） */
   savedAt: string;
-  /** 作成者（自社担当者、または協力会社名） */
+  /** 作成者（自社担当者） */
   savedBy: string;
   /** ファイルサイズ（KB） */
   sizeKb: number;
@@ -248,7 +198,6 @@ export interface QuoteFile {
 
 /** 見積書ファイルから読み取った内容 */
 export interface QuoteReadResult {
-  dealKind: DealKind;
   partnerId: string;
   title: string;
   site: string;
