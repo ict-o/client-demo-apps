@@ -2,13 +2,13 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { ProjectActions } from '../App';
 import type { ComplianceItem, ContractTerms, DocKind, Partner, Project, QuoteReadResult } from '../types';
-import { DEAL_KIND_LABELS, DOC_KINDS, DOC_KIND_LABELS, DOC_KIND_PLAIN } from '../types';
+import { DOC_KINDS, DOC_KIND_LABELS, DOC_KIND_PLAIN } from '../types';
 import { DocStatusBadge, StatusBadge } from '../components/StatusBadge';
 import { DocumentPreview } from '../components/DocumentPreview';
 import { EmptyState } from '../components/EmptyState';
 import { FlowSteps } from '../components/FlowSteps';
 import { Modal } from '../components/Modal';
-import { TERMS_TEMPLATES, termsTemplate } from '../data/sampleData';
+import { TERMS_TEMPLATE } from '../data/sampleData';
 import { calcTotals, lineAmount } from '../utils/calc';
 import {
   buildComplianceItems,
@@ -74,10 +74,7 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
         <div>
           <div className="row gap-8 wrap mb-8">
             <span className="fs-14 fw-700 text-sub tnum">{project.no}</span>
-            <span className={project.dealKind === 'order' ? 'tag tag-order' : 'tag tag-receive'}>
-              {DEAL_KIND_LABELS[project.dealKind]}
-            </span>
-            <StatusBadge status={project.status} dealKind={project.dealKind} />
+            <StatusBadge status={project.status} />
           </div>
           <h1 className="page-title">{project.title}</h1>
           <p className="page-sub">
@@ -91,11 +88,10 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
         </div>
       </div>
 
-      <FlowSteps status={project.status} dealKind={project.dealKind} generated={generated} />
+      <FlowSteps status={project.status} generated={generated} />
 
       <NextAction
         project={project}
-        partner={partner}
         actions={actions}
         generated={generated}
         regenerate={regenerate}
@@ -195,19 +191,15 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
 
 function NextAction({
   project,
-  partner,
   actions,
   generated,
   regenerate,
 }: {
   project: Project;
-  partner: Partner;
   actions: ProjectActions;
   generated: boolean;
   regenerate: boolean;
 }) {
-  const isReceive = project.dealKind === 'receive';
-
   let title: string;
   let desc: string;
   let button: { label: string; onClick: () => void } | null = null;
@@ -217,28 +209,20 @@ function NextAction({
     desc = '取り込んだ見積書の内容（取引先・工事名・金額・工期・支払い方法）が、そのまま3つの書類に入ります。入力は必要ありません。';
     button = { label: '3つの書類を作る', onClick: () => actions.generateDocs(project.id) };
   } else if (project.status === 'imported') {
-    title = isReceive ? 'お客様から押印済みの注文書を受け取ってください' : '注文書を協力会社へ送ってください';
-    desc = isReceive
-      ? `お客様が注文書を出さない場合は、ここで作った注文書に記名押印をいただくだけで大丈夫です。受け取ったらボタンを押してください。`
-      : `${partner.name} へ注文書を送ります。送ったらボタンを押してください。`;
-    button = isReceive
-      ? { label: '押印済みの注文書を受け取った', onClick: () => actions.receiveSealed(project.id, 'order') }
-      : { label: '注文書を送った', onClick: () => actions.sendDoc(project.id, 'order') };
+    title = 'お客様から押印済みの注文書を受け取ってください';
+    desc = 'お客様が注文書を出さない場合は、ここで作った注文書に記名押印をいただくだけで大丈夫です。受け取ったらボタンを押してください。';
+    button = { label: '押印済みの注文書を受け取った', onClick: () => actions.receiveSealedOrder(project.id) };
   } else if (project.status === 'ordered') {
-    title = isReceive ? '注文請書をお客様へ送ってください' : '押印済みの注文請書を受け取ってください';
-    desc = isReceive
-      ? 'ここで作った注文請書をそのまま送れます。送ると契約成立になり、約款も締結済みとして記録されます。'
-      : `${partner.name} から返ってきた注文請書を登録すると、約款とあわせて契約成立として記録されます。`;
-    button = isReceive
-      ? { label: '注文請書を送った', onClick: () => actions.confirmAcceptance(project.id) }
-      : { label: '押印済みの注文請書を受け取った', onClick: () => actions.receiveSealed(project.id, 'acceptance') };
+    title = '注文請書をお客様へ送ってください';
+    desc = 'ここで作った注文請書をそのまま送れます。送ると契約成立になり、約款も締結済みとして記録されます。';
+    button = { label: '注文請書を送った', onClick: () => actions.confirmAcceptance(project.id) };
   } else if (project.status === 'accepted') {
     title = '書類はそろいました。工事が終わったら完了を登録してください';
     desc = '書類4点は「書類」タブから1つのファイルにまとめて出力できます。';
     button = { label: '工事が完了した', onClick: () => actions.completeProject(project.id) };
   } else {
     title = '工事完了まで登録が済んでいます';
-    desc = '書類4点は法律で保存が必要です。「書類」タブから1つのファイルにまとめて保管してください。';
+    desc = '書類4点は「書類」タブから1つのファイルにまとめて保管してください。';
   }
 
   return (
@@ -302,7 +286,7 @@ function CheckPanel({
             </div>
             <div className="fs-14 text-sub">
               {allOk
-                ? '建設業法で決められた記載事項を満たしています。'
+                ? '注文書・注文請書・約款に書く内容がそろっています。'
                 : '足りない項目を入れると、書類がそろいます。'}
             </div>
           </div>
@@ -337,7 +321,6 @@ function CheckPanel({
               <div className="grow">
                 <div className="fs-15 fw-700">{item.label}</div>
                 <div className="fs-14 text-sub">{item.ok ? item.value : item.hint}</div>
-                <div className="fs-13 text-muted mt-4">{item.clause}</div>
               </div>
             </div>
           ))}
@@ -406,7 +389,7 @@ function DocsTab({
               </div>
               <div className="doc-plain">{DOC_KIND_PLAIN[kind]}</div>
               <div className="doc-no tnum">{doc.no || '書類番号は作成時に付きます'}</div>
-              <p className="fs-14 text-sub grow">{docFlowNote(project, kind, partner)}</p>
+              <p className="fs-14 text-sub grow">{docFlowNote(kind, partner)}</p>
               <div className="fs-13 text-muted">
                 {doc.issuedOn ? `${kind === 'quote' ? '取込日' : '作成日'}：${formatDate(doc.issuedOn)}` : 'まだ作っていません'}
                 {doc.autoGenerated && !missing ? '／見積書から自動作成' : ''}
@@ -446,7 +429,7 @@ function QuoteTab({
 
   const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(project.terms), [draft, project.terms]);
   const set = (patch: Partial<ContractTerms>) => setDraft(prev => ({ ...prev, ...patch }));
-  const template = termsTemplate(draft.termsTemplateId);
+  const template = TERMS_TEMPLATE;
 
   const save = () => {
     const e: Record<string, string> = {};
@@ -606,21 +589,6 @@ function QuoteTab({
           )}
         </div>
 
-        <div className="field" style={{ maxWidth: '520px' }}>
-          <label className="field-label" htmlFor="q-template">使用する約款</label>
-          <select
-            id="q-template"
-            className="select"
-            value={draft.termsTemplateId}
-            disabled={locked}
-            onChange={e => set({ termsTemplateId: e.target.value })}
-          >
-            {TERMS_TEMPLATES.map(t => (
-              <option key={t.id} value={t.id}>{t.name}（{t.target}）</option>
-            ))}
-          </select>
-        </div>
-
         <div className="alert alert-info">
           <span aria-hidden="true">i</span>
           <div>
@@ -665,7 +633,7 @@ function BundleModal({
   partner: Partner;
   onExport: () => void;
 }) {
-  const parties = partiesOf(project, partner);
+  const parties = partiesOf(partner);
   const fileName = `${project.no}_工事関係書類一式.pdf`;
   return (
     <Modal
@@ -695,7 +663,6 @@ function BundleModal({
         <div>
           注文者：{parties.orderer.name}／受注者：{parties.contractor.name}
           <p className="mt-4">
-            契約書類は、工事が終わってから5年間（発注者と直接契約した住宅の新築工事は10年間）の保存が必要です。
             出力したファイルは案件番号で保管してください。
           </p>
         </div>
@@ -719,7 +686,6 @@ function revisedQuote(project: Project): { fileName: string; read: QuoteReadResu
     fileName: `${base}_改訂${rev}.xlsx`,
     addedName,
     read: {
-      dealKind: project.dealKind,
       partnerId: project.partnerId,
       title: project.title,
       site: project.site,

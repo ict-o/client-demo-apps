@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ContractTerms, Partner, Project, QuoteFile } from '../types';
-import { DEAL_KIND_LABELS } from '../types';
-import { CURRENT_USER, STAFF_OPTIONS, quoteFiles, termsTemplate } from '../data/sampleData';
+import { CURRENT_USER, STAFF_OPTIONS, TERMS_TEMPLATE, quoteFiles } from '../data/sampleData';
 import { calcTotals, lineAmount } from '../utils/calc';
 import { formatDate, formatDateTime, formatNumber, formatYen, nowIso } from '../utils/format';
 import { EmptyState } from '../components/EmptyState';
@@ -48,7 +47,7 @@ export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Pr
 
   const partner = selected ? partners.find(p => p.id === selected.read.partnerId) : undefined;
   const totals = selected ? calcTotals(selected.read.items, selected.read.discount) : null;
-  const template = selected ? termsTemplate(selected.read.dealKind === 'order' ? 'tpl-subcon' : 'tpl-standard') : null;
+  const template = TERMS_TEMPLATE;
 
   const startReading = (file: QuoteFile) => {
     const target = partners.find(p => p.id === file.read.partnerId);
@@ -72,7 +71,7 @@ export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Pr
   };
 
   const submit = () => {
-    if (!selected || !partner || !totals || !template) return;
+    if (!selected || !partner || !totals) return;
     const e: Record<string, string> = {};
     if (!startDate) e.startDate = '工事を始める日を入力してください';
     if (!endDate) e.endDate = '工事が終わる日を入力してください';
@@ -90,7 +89,6 @@ export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Pr
       endDate,
       nonWorkingDays: nonWorkingDays.trim(),
       paymentMethod: paymentMethod.trim(),
-      termsTemplateId: template.id,
     };
 
     const read = selected.read;
@@ -98,7 +96,6 @@ export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Pr
       id: newId(),
       no: projectNo,
       title: read.title,
-      dealKind: read.dealKind,
       status: 'imported',
       partnerId: read.partnerId,
       site: read.site,
@@ -195,7 +192,7 @@ export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Pr
                       <span className="file-body">
                         <span className="file-name">{file.name}</span>
                         <span className="file-meta">
-                          {target?.name ?? '取引先不明'}／{DEAL_KIND_LABELS[file.read.dealKind]}
+                          {target?.name ?? '取引先不明'}
                         </span>
                         <span className="file-meta">
                           保存 {formatDateTime(file.savedAt)}／{file.savedBy}／{formatNumber(file.sizeKb)} KB
@@ -211,7 +208,7 @@ export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Pr
         </div>
       )}
 
-      {!reading && step === 1 && selected && totals && template && (
+      {!reading && step === 1 && selected && totals && (
         <>
           <div className="alert alert-success mb-16">
             <span aria-hidden="true">✓</span>
@@ -227,7 +224,6 @@ export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Pr
             <h2 className="section-title"><span className="bar" />見積書から読み取った内容</h2>
             <div className="read-grid">
               <ReadItem label="取引先" value={partner?.name ?? '（取引先が未登録です）'} />
-              <ReadItem label="取引の種類" value={DEAL_KIND_LABELS[selected.read.dealKind]} />
               <ReadItem label="工事名" value={selected.read.title} />
               <ReadItem label="工事場所" value={selected.read.site} />
               <ReadItem label="工事の内容" value={selected.read.scope} wide />
@@ -359,7 +355,7 @@ export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Pr
               <div>
                 <div className="fw-700">検査・引渡し・遅延利息などの取り決めは入力不要です</div>
                 <div className="fs-14 mt-4">
-                  「{template.name}」（全 {template.clauses.length} 条）が自動で適用され、建設業法で求められる取り決めが書類にそろいます。
+                  「{template.name}」（全 {template.clauses.length} 条）が自動で適用され、検査・引渡しなどの取り決めが書類にそろいます。
                 </div>
               </div>
             </div>

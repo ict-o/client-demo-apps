@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Partner, PartnerKind, Project } from '../types';
-import { PARTNER_KIND_LABELS, PARTNER_KIND_SHORT } from '../types';
+import type { Partner, Project } from '../types';
 import { EmptyState } from '../components/EmptyState';
 import { Modal } from '../components/Modal';
 
@@ -13,19 +12,16 @@ interface Props {
 
 const EMPTY: Omit<Partner, 'id'> = {
   name: '',
-  kind: 'client',
   department: '',
   contactName: '',
   postalCode: '',
   address: '',
   tel: '',
-  licenseNo: '',
   paymentTerms: '',
 };
 
 export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
   const [keyword, setKeyword] = useState('');
-  const [kind, setKind] = useState<PartnerKind | 'all'>('all');
   const [editing, setEditing] = useState<Partner | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,7 +33,6 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
   }, [projects]);
 
   const filtered = partners.filter(p => {
-    if (kind !== 'all' && p.kind !== kind) return false;
     const kw = keyword.trim();
     if (!kw) return true;
     return [p.name, p.contactName, p.address, p.department].join(' ').includes(kw);
@@ -68,7 +63,7 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
     setEditing(null);
   };
 
-  const filterApplied = Boolean(keyword.trim()) || kind !== 'all';
+  const filterApplied = Boolean(keyword.trim());
 
   return (
     <>
@@ -91,18 +86,6 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
           <label htmlFor="pkw" className="visually-hidden">取引先の検索</label>
           <input id="pkw" className="input" value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="会社名・担当者名で探す" />
         </div>
-        <div className="chips" role="group" aria-label="取引先の種類で絞り込み">
-          {(['all', 'client', 'subcontractor'] as const).map(k => (
-            <button
-              key={k}
-              className={kind === k ? 'chip active' : 'chip'}
-              onClick={() => setKind(k)}
-              aria-pressed={kind === k}
-            >
-              {k === 'all' ? 'すべて' : PARTNER_KIND_SHORT[k]}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="list-count">{filtered.length} 件を表示しています</div>
@@ -115,7 +98,7 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
             action={
               <div className="row gap-10 wrap" style={{ justifyContent: 'center' }}>
                 {filterApplied && (
-                  <button className="btn btn-secondary" onClick={() => { setKeyword(''); setKind('all'); }}>
+                  <button className="btn btn-secondary" onClick={() => setKeyword('')}>
                     すべての取引先を表示する
                   </button>
                 )}
@@ -132,7 +115,6 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
                 <th>会社名</th>
                 <th>担当者</th>
                 <th>所在地・電話番号</th>
-                <th>建設業許可番号</th>
                 <th>支払条件</th>
                 <th className="num">案件数</th>
               </tr>
@@ -142,9 +124,6 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
                 <tr key={p.id} className="clickable" onClick={() => openEdit(p)}>
                   <td style={{ minWidth: '210px' }}>
                     <div className="fw-600">{p.name}</div>
-                    <span className={p.kind === 'subcontractor' ? 'tag tag-order mt-4' : 'tag tag-receive mt-4'}>
-                      {PARTNER_KIND_SHORT[p.kind]}
-                    </span>
                   </td>
                   <td>
                     <div>{p.contactName} 様</div>
@@ -153,11 +132,6 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
                   <td style={{ minWidth: '240px' }}>
                     <div className="fs-14">〒{p.postalCode} {p.address}</div>
                     <div className="fs-13 text-sub">TEL {p.tel}</div>
-                  </td>
-                  <td className="fs-14">
-                    {p.licenseNo ? p.licenseNo : p.kind === 'subcontractor'
-                      ? <span className="text-error fw-600">未登録（要確認）</span>
-                      : <span className="text-sub">—</span>}
                   </td>
                   <td className="fs-14">{p.paymentTerms || <span className="text-sub">—</span>}</td>
                   <td className="num">{projectCount.get(p.id) ?? 0} 件</td>
@@ -185,18 +159,6 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
             <div className="alert alert-info mb-16">
               <span aria-hidden="true">i</span>
               <div>保存した内容は、この取引先の見積書・注文書・注文請書・約款の記載にそのまま反映されます。</div>
-            </div>
-
-            <div className="field">
-              <span className="field-label">取引先の種類</span>
-              <div className="row gap-10 wrap">
-                {(['client', 'subcontractor'] as PartnerKind[]).map(k => (
-                  <label key={k} className={editing.kind === k ? 'radio-card active' : 'radio-card'}>
-                    <input type="radio" name="pkind" checked={editing.kind === k} onChange={() => setEditing({ ...editing, kind: k })} />
-                    <span className="fs-15 fw-600">{PARTNER_KIND_LABELS[k]}</span>
-                  </label>
-                ))}
-              </div>
             </div>
 
             <div className="field">
@@ -240,14 +202,6 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
               <label className="field-label" htmlFor="p-pay">支払条件</label>
               <input id="p-pay" className="input" value={editing.paymentTerms} onChange={e => setEditing({ ...editing, paymentTerms: e.target.value })} />
               <p className="field-hint">見積書を取り込むとき、代金の支払い方法にこの内容が自動で入ります。</p>
-            </div>
-
-            <div className="field">
-              <label className="field-label" htmlFor="p-lic">建設業許可番号</label>
-              <input id="p-lic" className="input" value={editing.licenseNo} onChange={e => setEditing({ ...editing, licenseNo: e.target.value })} />
-              <p className="field-hint">
-                協力会社へ工事を発注する場合は、許可番号の確認と記録が必要です（未登録だと案件画面で不足として表示されます）。
-              </p>
             </div>
           </>
         )}

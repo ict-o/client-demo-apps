@@ -1,6 +1,6 @@
 import type { DocKind, Partner, Project } from '../types';
 import { DOC_KIND_LABELS } from '../types';
-import { OWN_COMPANY, termsTemplate } from '../data/sampleData';
+import { OWN_COMPANY, TERMS_TEMPLATE } from '../data/sampleData';
 import { calcTotals, lineAmount } from '../utils/calc';
 import { buildArticles, documentNo, partiesOf } from '../utils/docs';
 import { formatDate, formatJpDate, formatNumber, formatYen } from '../utils/format';
@@ -14,7 +14,7 @@ interface Props {
 /** 画面上で内容を確認できる帳票プレビュー（印刷にも対応） */
 export function DocumentPreview({ project, partner, kind }: Props) {
   const totals = calcTotals(project.items, project.discount);
-  const { orderer, contractor } = partiesOf(project, partner);
+  const { orderer, contractor } = partiesOf(partner);
   const doc = project.documents.find(d => d.kind === kind);
   const issuedOn = doc?.issuedOn ?? '';
   const period =
@@ -84,11 +84,13 @@ function QuoteBody({
   totals: ReturnType<typeof calcTotals>;
   period: string;
 }) {
-  const isReceive = project.dealKind === 'receive';
-  const addressee = isReceive ? partner.name : `${OWN_COMPANY.name} ${OWN_COMPANY.division}`;
-  const issuer = isReceive
-    ? { name: `${OWN_COMPANY.name} ${OWN_COMPANY.division}`, address: `〒${OWN_COMPANY.postalCode} ${OWN_COMPANY.address}`, tel: OWN_COMPANY.tel, licenseNo: OWN_COMPANY.licenseNo }
-    : { name: partner.name, address: `〒${partner.postalCode} ${partner.address}`, tel: partner.tel, licenseNo: partner.licenseNo };
+  const addressee = partner.name;
+  const issuer = {
+    name: `${OWN_COMPANY.name} ${OWN_COMPANY.division}`,
+    address: `〒${OWN_COMPANY.postalCode} ${OWN_COMPANY.address}`,
+    tel: OWN_COMPANY.tel,
+    licenseNo: OWN_COMPANY.licenseNo,
+  };
 
   return (
     <>
@@ -156,8 +158,7 @@ function QuoteBody({
       </div>
 
       <div className="note">
-        ※ 本見積書は、取り込んだ見積書ファイル「{project.sourceFile.name}」の内容をもとに表示しています。<br />
-        ※ 建設業法第20条に基づき、工事の種別ごとの内訳を明示しています。
+        ※ 本見積書は、取り込んだ見積書ファイル「{project.sourceFile.name}」の内容をもとに表示しています。
       </div>
     </>
   );
@@ -180,7 +181,7 @@ function OrderBody({
 }) {
   const isOrder = kind === 'order';
   const t = project.terms;
-  const template = termsTemplate(t.termsTemplateId);
+  const template = TERMS_TEMPLATE;
   const addressee = isOrder ? contractor : orderer;
   const issuer = isOrder ? orderer : contractor;
 
@@ -223,10 +224,6 @@ function OrderBody({
         <PartyBlock label={addressee.label} name={addressee.name} address={addressee.address} tel={addressee.tel} licenseNo={addressee.licenseNo} seal />
       </div>
 
-      <div className="note">
-        ※ 収入印紙の要否は請負代金の額に応じて判定してください（本デモでは表示のみ）。<br />
-        ※ 記載事項は建設業法第19条第1項各号に対応しています。
-      </div>
     </>
   );
 }
@@ -243,7 +240,7 @@ function TermsBody({
   contractor: ReturnType<typeof partiesOf>['contractor'];
 }) {
   const articles = buildArticles(project, partner);
-  const template = termsTemplate(project.terms.termsTemplateId);
+  const template = TERMS_TEMPLATE;
 
   return (
     <>

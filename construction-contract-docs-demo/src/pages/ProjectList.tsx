@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Partner, Project } from '../types';
-import { DEAL_KIND_SHORT } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
 import { EmptyState } from '../components/EmptyState';
 import { calcTotals } from '../utils/calc';
@@ -164,12 +163,7 @@ export function ProjectList({ projects, partners }: Props) {
             <tbody>
               {filtered.map(({ project, partner, total, compliance, docsDone, todo }) => (
                 <tr key={project.id} className="clickable" onClick={() => navigate(`/project/${project.id}`)}>
-                  <td>
-                    <div className="fw-700 tnum">{project.no}</div>
-                    <span className={project.dealKind === 'order' ? 'tag tag-order mt-4' : 'tag tag-receive mt-4'}>
-                      {DEAL_KIND_SHORT[project.dealKind]}
-                    </span>
-                  </td>
+                  <td className="fw-700 tnum">{project.no}</td>
                   <td style={{ minWidth: '260px' }}>
                     <div className="fw-600">{project.title}</div>
                     <div className="fs-13 text-sub">{project.site}</div>
@@ -187,7 +181,7 @@ export function ProjectList({ projects, partners }: Props) {
                       <div className="fs-13 text-error mt-4">書類の作り直しが必要</div>
                     )}
                   </td>
-                  <td><StatusBadge status={project.status} dealKind={project.dealKind} /></td>
+                  <td><StatusBadge status={project.status} /></td>
                 </tr>
               ))}
             </tbody>

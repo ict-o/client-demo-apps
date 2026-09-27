@@ -10,7 +10,7 @@ import type {
   Project,
 } from '../types';
 import { DOC_STATUS_LABELS } from '../types';
-import { OWN_COMPANY, termsTemplate } from '../data/sampleData';
+import { OWN_COMPANY, TERMS_TEMPLATE } from '../data/sampleData';
 import { calcTotals } from './calc';
 import { formatDate, formatYen } from './format';
 
@@ -23,8 +23,8 @@ export interface PartyInfo {
   licenseNo: string;
 }
 
-/** 案件の取引区分に応じて、注文者（甲）と受注者（乙）を決める */
-export function partiesOf(project: Project, partner: Partner): { orderer: PartyInfo; contractor: PartyInfo } {
+/** 注文者（甲）＝お客様、受注者（乙）＝自社 */
+export function partiesOf(partner: Partner): { orderer: PartyInfo; contractor: PartyInfo } {
   const own: PartyInfo = {
     label: '',
     name: `${OWN_COMPANY.name} ${OWN_COMPANY.division}`,
@@ -39,36 +39,23 @@ export function partiesOf(project: Project, partner: Partner): { orderer: PartyI
     address: `〒${partner.postalCode} ${partner.address}`,
     tel: partner.tel,
     contact: `${partner.department} ${partner.contactName} 様`,
-    licenseNo: partner.licenseNo,
+    licenseNo: '',
   };
-  if (project.dealKind === 'receive') {
-    return {
-      orderer: { ...other, label: '注文者（甲）' },
-      contractor: { ...own, label: '受注者（乙）' },
-    };
-  }
   return {
-    orderer: { ...own, label: '注文者（甲）' },
-    contractor: { ...other, label: '受注者（乙）' },
+    orderer: { ...other, label: '注文者（甲）' },
+    contractor: { ...own, label: '受注者（乙）' },
   };
 }
 
 /** 書類ごとの「誰が誰に出すか」を短い日本語で説明する */
-export function docFlowNote(project: Project, kind: DocKind, partner: Partner): string {
-  const isReceive = project.dealKind === 'receive';
+export function docFlowNote(kind: DocKind, partner: Partner): string {
   switch (kind) {
     case 'quote':
-      return isReceive
-        ? `${partner.name} へお出しした見積書です。`
-        : `${partner.name} から受け取った見積書です。`;
+      return `${partner.name} へお出しした見積書です。`;
     case 'order':
-      return isReceive
-        ? `${partner.name} からいただく注文書です。先方が注文書を出さない場合は、この書類に押印をいただくだけで済みます。`
-        : `${partner.name} へお渡しする注文書です。`;
+      return `${partner.name} からいただく注文書です。先方が注文書を出さない場合は、この書類に押印をいただくだけで済みます。`;
     case 'acceptance':
-      return isReceive
-        ? `${partner.name} へお渡しする注文請書です。`
-        : `${partner.name} からいただく注文請書です。`;
+      return `${partner.name} へお渡しする注文請書です。`;
     case 'terms':
       return '工期・支払いなどの約束ごとをまとめた書類です。注文書・注文請書と一緒に保管します。';
   }
@@ -134,77 +121,56 @@ export function isDocSetComplete(project: Project): boolean {
 
 /**
  * 書類に必要な項目のチェック。
- * 担当者が読んで分かる言葉を主役にし、根拠となる条文は補足として添える。
  * 定型条項は約款テンプレートが持つため、入力が必要な項目は最小限になっている。
  */
 export function buildComplianceItems(project: Project, partner: Partner): ComplianceItem[] {
   const t = project.terms;
   const totals = calcTotals(project.items, project.discount);
-  const template = termsTemplate(t.termsTemplateId);
 
-  const items: ComplianceItem[] = [
+  return [
     {
       label: '取引先の会社名・所在地・連絡先',
       ok: Boolean(partner.name && partner.address && partner.tel),
       value: `${partner.name}／${partner.address}`,
       hint: '「取引先」の画面で、会社名・所在地・電話番号を登録してください。',
-      clause: '建設業法 第19条第1項第16号',
     },
     {
       label: '工事の名称・場所・内容',
       ok: Boolean(project.title.trim() && project.site.trim() && project.scope.trim()) && project.items.length > 0,
       value: `${project.title}（${project.site}）`,
       hint: '見積書の読み取り結果に不足があります。「見積書の内容」から見積書を差し替えてください。',
-      clause: '建設業法 第19条第1項第1号・第20条',
     },
     {
       label: '請負代金の額',
       ok: totals.total > 0,
       value: `${formatYen(totals.total)}（税込）`,
       hint: '見積書から金額を読み取れていません。「見積書の内容」から見積書を差し替えてください。',
-      clause: '建設業法 第19条第1項第2号',
     },
     {
       label: '工期（着手日と完成日）',
       ok: Boolean(t.startDate && t.endDate),
       value: t.startDate && t.endDate ? `${formatDate(t.startDate)} 〜 ${formatDate(t.endDate)}` : '',
       hint: '「見積書の内容」タブの「工事の条件」で、着手日と完成日を入力してください。',
-      clause: '建設業法 第19条第1項第3号',
     },
     {
       label: '工事ができない日・時間帯',
       ok: t.nonWorkingDays.trim().length > 0,
       value: t.nonWorkingDays,
       hint: '「見積書の内容」タブの「工事の条件」で、休工日や施工できない時間帯を入力してください。',
-      clause: '建設業法 第19条第1項第4号',
     },
     {
       label: '代金の支払い方法',
       ok: t.paymentMethod.trim().length > 0,
       value: t.paymentMethod,
       hint: '「見積書の内容」タブの「工事の条件」で、支払い方法を入力してください。取引先の支払条件から入力できます。',
-      clause: '建設業法 第19条第1項第12号',
     },
     {
       label: 'その他の取り決め（検査・引渡し・不可抗力など）',
-      ok: Boolean(t.termsTemplateId),
-      value: `${template.name}（${template.clauses.length}条）を自動で適用`,
-      hint: '「見積書の内容」タブの「工事の条件」で、使用する約款を選んでください。',
-      clause: '建設業法 第19条第1項第5〜11・13〜15号',
+      ok: true,
+      value: `${TERMS_TEMPLATE.name}（${TERMS_TEMPLATE.clauses.length}条）を自動で適用`,
+      hint: '',
     },
   ];
-
-  if (project.dealKind === 'order') {
-    items.push({
-      label: '協力会社の建設業許可番号',
-      ok: partner.licenseNo.trim().length > 0,
-      value: partner.licenseNo,
-      hint: '「取引先」の画面で、協力会社の建設業許可番号を登録してください。',
-      clause: '建設業法 第40条の3ほか',
-    });
-  }
-
-  return items;
 }
 
 export function complianceSummary(items: ComplianceItem[]): { ok: number; total: number; rate: number } {
@@ -228,8 +194,7 @@ export interface Article {
 export function buildArticles(project: Project, partner: Partner): Article[] {
   const t = project.terms;
   const totals = calcTotals(project.items, project.discount);
-  const parties = partiesOf(project, partner);
-  const template = termsTemplate(t.termsTemplateId);
+  const parties = partiesOf(partner);
   const na = (v: string, fallback: string) => (v.trim() ? v.trim() : fallback);
   const period =
     t.startDate && t.endDate
@@ -275,7 +240,7 @@ export function buildArticles(project: Project, partner: Partner): Article[] {
     },
   ];
 
-  const fromTemplate: Article[] = template.clauses.map((c, i) => ({
+  const fromTemplate: Article[] = TERMS_TEMPLATE.clauses.map((c, i) => ({
     no: `第${own.length + i + 1}条`,
     title: c.title,
     body: c.body,

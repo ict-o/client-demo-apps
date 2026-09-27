@@ -1,5 +1,5 @@
-import type { DealKind, DocKind, DocStatus, ProjectStatus } from '../types';
-import { PROJECT_STATUS_TONE, projectStatusLabel } from '../types';
+import type { DocKind, DocStatus, ProjectStatus } from '../types';
+import { PROJECT_STATUS_LABELS, PROJECT_STATUS_TONE } from '../types';
 import { docStatusLabel } from '../utils/docs';
 
 const TONE_STYLE: Record<string, { color: string; bg: string }> = {
@@ -10,12 +10,12 @@ const TONE_STYLE: Record<string, { color: string; bg: string }> = {
   success: { color: 'var(--success)', bg: 'var(--success-light)' },
 };
 
-export function StatusBadge({ status, dealKind }: { status: ProjectStatus; dealKind: DealKind }) {
+export function StatusBadge({ status }: { status: ProjectStatus }) {
   const s = TONE_STYLE[PROJECT_STATUS_TONE[status]];
   return (
     <span className="badge" style={{ color: s.color, background: s.bg }}>
       <span className="dot" />
-      {projectStatusLabel(status, dealKind)}
+      {PROJECT_STATUS_LABELS[status]}
     </span>
   );
 }
