@@ -6,14 +6,13 @@ import { generateDocuments } from './utils/docs';
 import { nowIso, todayIso } from './utils/format';
 import type { ImportRow } from './utils/partnerImport';
 import { Layout } from './components/Layout';
-import { Modal } from './components/Modal';
+import { Tutorial, WelcomeDialog } from './components/Tutorial';
 import { ToastContainer, type ToastState } from './components/Toast';
 import { ProjectList } from './pages/ProjectList';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { QuoteImport } from './pages/QuoteImport';
 import { PartnerMaster } from './pages/PartnerMaster';
 import { PartnerImport } from './pages/PartnerImport';
-import { Guide } from './pages/Guide';
 import { Login } from './pages/Login';
 
 /** ログイン状態はタブを閉じるまで保持する（保存できない環境ではログインし直すだけ） */
@@ -73,6 +72,9 @@ function AppContent() {
   const navigate = useNavigate();
   const [user, setUser] = useState<AppUser | null>(restoreUser);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [tutorialIndex, setTutorialIndex] = useState<number | null>(null);
+  const closeWelcome = useCallback(() => setWelcomeOpen(false), []);
+  const closeTutorial = useCallback(() => setTutorialIndex(null), []);
   const [projects, setProjects] = useState<Project[]>(sampleProjects);
   const [partners, setPartners] = useState<Partner[]>(initialPartners);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -95,6 +97,7 @@ function AppContent() {
     saveUser(null);
     setUser(null);
     setWelcomeOpen(false);
+    setTutorialIndex(null);
     navigate('/');
     showToast('ログアウトしました', 'info');
   }, [navigate, showToast]);
@@ -242,7 +245,7 @@ function AppContent() {
 
   return (
     <>
-      <Layout user={user} onLogout={logout}>
+      <Layout user={user} onLogout={logout} onStartTutorial={() => setTutorialIndex(0)}>
         <Routes>
           <Route path="/" element={<ProjectList projects={projects} partners={partners} />} />
           <Route
@@ -270,38 +273,21 @@ function AppContent() {
             path="/partners/import"
             element={<PartnerImport partners={partners} onImport={importPartners} onToast={showToast} />}
           />
-          <Route path="/guide" element={<Guide projects={projects} />} />
         </Routes>
       </Layout>
 
-      <Modal
-        isOpen={welcomeOpen}
-        onClose={() => setWelcomeOpen(false)}
-        title="はじめてお使いの方へ"
-        width={560}
-        footer={
-          <>
-            <button className="btn btn-secondary" onClick={() => setWelcomeOpen(false)}>閉じて始める</button>
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                setWelcomeOpen(false);
-                navigate('/guide');
-              }}
-            >
-              操作ガイドを見る
-            </button>
-          </>
-        }
-      >
-        <p className="fs-15 mb-12">このシステムでは、次の3つの手順で工事の契約書類がそろいます。</p>
-        <ol className="welcome-steps">
-          <li><span className="fw-700">見積書を取り込む</span>：Excel の見積書を選ぶだけで、取引先・明細・金額が入ります。</li>
-          <li><span className="fw-700">4つの項目を入力する</span>：工期・工事ができない日・支払い方法を入れて登録します。</li>
-          <li><span className="fw-700">「次にやること」のボタンを押す</span>：書類づくりから契約成立まで、順番に案内します。</li>
-        </ol>
-        <p className="fs-14 text-sub mt-12">操作ガイドは、上のメニューの「操作ガイド」からいつでも開けます。</p>
-      </Modal>
+      {welcomeOpen && tutorialIndex === null && (
+        <WelcomeDialog
+          userName={user.name}
+          onStart={() => {
+            setWelcomeOpen(false);
+            setTutorialIndex(0);
+          }}
+          onClose={closeWelcome}
+        />
+      )}
+
+      <Tutorial index={tutorialIndex} onChangeIndex={setTutorialIndex} onClose={closeTutorial} />
 
       <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </>

@@ -184,7 +184,7 @@ export function QuoteImport({ partners, projects, userName, onCreate, newId, onT
               }
             />
           ) : (
-            <ul className="file-list">
+            <ul className="file-list" data-tour="quote-files">
               {pending.map(file => {
                 const target = partners.find(p => p.id === file.read.partnerId);
                 return (
@@ -276,7 +276,7 @@ export function QuoteImport({ partners, projects, userName, onCreate, newId, onT
             </p>
           </div>
 
-          <div className="card card-pad mb-16">
+          <div className="card card-pad mb-16" data-tour="terms-form">
             <h2 className="section-title"><span className="bar" />見積書に書かれていない項目を入力してください</h2>
             <p className="fs-14 text-sub mb-16">
               入力するのはこの4つだけです。ここに入れた内容が、注文書・注文請書・約款にそのまま印字されます。
@@ -379,7 +379,7 @@ export function QuoteImport({ partners, projects, userName, onCreate, newId, onT
             <button className="btn btn-secondary" onClick={backToList}>
               別の見積書を選び直す
             </button>
-            <button className="btn btn-primary btn-lg" onClick={submit}>
+            <button className="btn btn-primary btn-lg" onClick={submit} data-tour="register-button">
               この内容で登録する
             </button>
           </div>

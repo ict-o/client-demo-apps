@@ -235,7 +235,7 @@ function NextAction({
   }
 
   return (
-    <div className="next-card">
+    <div className="next-card" data-tour="next-action" data-stage={`${project.status}${generated ? '-gen' : ''}`}>
       {regenerate && (
         <div className="alert alert-warning mb-16">
           <span aria-hidden="true">!</span>
@@ -263,7 +263,7 @@ function NextAction({
               {subButton.label}
             </button>
           )}
-          <button className="btn btn-primary btn-lg" onClick={button.onClick}>
+          <button className="btn btn-primary btn-lg" onClick={button.onClick} data-tour="next-button">
             {button.label}
           </button>
         </div>
@@ -288,7 +288,7 @@ function CheckPanel({
   const missing = items.filter(i => !i.ok);
 
   return (
-    <div className={allOk ? 'check-panel ok' : 'check-panel ng'}>
+    <div className={allOk ? 'check-panel ok' : 'check-panel ng'} data-tour="check-panel">
       <div className="row between wrap gap-12">
         <div className="row gap-12">
           <span className="check-mark" aria-hidden="true">{allOk ? '✓' : '!'}</span>
@@ -390,7 +390,7 @@ function DocsTab({
         )}
       </div>
 
-      <div className="doc-grid">
+      <div className="doc-grid" data-tour="doc-cards">
         {DOC_KINDS.map(kind => {
           const doc = project.documents.find(d => d.kind === kind)!;
           const missing = doc.status === 'none';

@@ -6,6 +6,7 @@ import type { AppUser } from '../types';
 interface LayoutProps {
   user: AppUser;
   onLogout: () => void;
+  onStartTutorial: () => void;
   children: React.ReactNode;
 }
 
@@ -13,10 +14,9 @@ const NAV = [
   { label: '工事案件の一覧', path: '/' },
   { label: '見積書を取り込む', path: '/import' },
   { label: '取引先', path: '/partners' },
-  { label: '操作ガイド', path: '/guide' },
 ];
 
-export function Layout({ user, onLogout, children }: LayoutProps) {
+export function Layout({ user, onLogout, onStartTutorial, children }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -47,6 +47,9 @@ export function Layout({ user, onLogout, children }: LayoutProps) {
             <span className="viewer-avatar" aria-hidden="true">
               {user.name.charAt(0)}
             </span>
+            <button className="btn btn-secondary btn-sm tour-start" onClick={onStartTutorial}>
+              チュートリアル
+            </button>
             <button className="btn btn-secondary btn-sm" onClick={onLogout}>
               ログアウト
             </button>
@@ -61,6 +64,7 @@ export function Layout({ user, onLogout, children }: LayoutProps) {
                 onClick={() => navigate(n.path)}
                 className={isActive(n.path) ? 'nav-item active' : 'nav-item'}
                 aria-current={isActive(n.path) ? 'page' : undefined}
+                data-tour={n.path === '/import' ? 'nav-import' : undefined}
               >
                 {n.label}
               </button>

@@ -82,7 +82,7 @@ export function ProjectList({ projects, partners }: Props) {
         </button>
       </div>
 
-      <div className="tile-row">
+      <div className="tile-row" data-tour="status-tiles">
         <FilterTile
           label="対応が必要"
           desc="書類または入力に不足があります"
