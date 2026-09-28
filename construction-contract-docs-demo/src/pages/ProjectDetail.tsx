@@ -93,6 +93,7 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
       <NextAction
         project={project}
         actions={actions}
+        onOpenBundle={() => setBundleOpen(true)}
         generated={generated}
         regenerate={regenerate}
       />
@@ -192,17 +193,21 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
 function NextAction({
   project,
   actions,
+  onOpenBundle,
   generated,
   regenerate,
 }: {
   project: Project;
   actions: ProjectActions;
+  onOpenBundle: () => void;
   generated: boolean;
   regenerate: boolean;
 }) {
   let title: string;
   let desc: string;
-  let button: { label: string; onClick: () => void } | null = null;
+  let button: { label: string; onClick: () => void };
+  let subButton: { label: string; onClick: () => void } | null = null;
+  const bundleButton = { label: '1つのファイルにまとめる', onClick: onOpenBundle };
 
   if (!generated) {
     title = '注文書・注文請書・基本契約書（約款）を作ります';
@@ -218,11 +223,15 @@ function NextAction({
     button = { label: '注文請書を送った', onClick: () => actions.confirmAcceptance(project.id) };
   } else if (project.status === 'accepted') {
     title = '書類はそろいました。工事が終わったら完了を登録してください';
-    desc = '書類4点は「書類」タブから1つのファイルにまとめて出力できます。';
+    desc = '書類4点は「1つのファイルにまとめる」ボタンから、いつでも1つのファイルに出力できます。';
     button = { label: '工事が完了した', onClick: () => actions.completeProject(project.id) };
+    subButton = bundleButton;
   } else {
     title = '工事完了まで登録が済んでいます';
-    desc = '書類4点は「書類」タブから1つのファイルにまとめて保管してください。';
+    desc = project.bundleFileName
+      ? `書類4点は「${project.bundleFileName}」として出力済みです。内容を変えた場合は、もう一度まとめてください。`
+      : '書類4点を1つのファイルにまとめて保管してください。';
+    button = bundleButton;
   }
 
   return (
@@ -248,11 +257,16 @@ function NextAction({
           <div className="next-title">{title}</div>
           <p className="next-desc">{desc}</p>
         </div>
-        {button && (
+        <div className="row gap-10 wrap">
+          {subButton && (
+            <button className="btn btn-secondary btn-lg" onClick={subButton.onClick}>
+              {subButton.label}
+            </button>
+          )}
           <button className="btn btn-primary btn-lg" onClick={button.onClick}>
             {button.label}
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
