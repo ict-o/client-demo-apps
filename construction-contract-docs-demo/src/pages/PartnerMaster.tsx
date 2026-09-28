@@ -76,7 +76,7 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
             ここで登録した会社名・所在地・支払条件が、見積書・注文書・注文請書・約款にそのまま印字されます（全 {partners.length} 件）
           </p>
         </div>
-        <div className="row gap-10 wrap">
+        <div className="row gap-10 wrap" data-tour="partner-actions">
           <button className="btn btn-secondary btn-lg" onClick={() => navigate('/partners/import')}>
             Excel・CSVで一括登録
           </button>
