@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ContractTerms, Partner, Project, QuoteFile } from '../types';
-import { CURRENT_USER, STAFF_OPTIONS, TERMS_TEMPLATE, quoteFiles } from '../data/sampleData';
+import { STAFF_OPTIONS, TERMS_TEMPLATE, quoteFiles } from '../data/sampleData';
 import { calcTotals, lineAmount } from '../utils/calc';
 import { formatDate, formatDateTime, formatNumber, formatYen, nowIso } from '../utils/format';
 import { EmptyState } from '../components/EmptyState';
@@ -9,6 +9,8 @@ import { EmptyState } from '../components/EmptyState';
 interface Props {
   partners: Partner[];
   projects: Project[];
+  /** ログイン中の利用者名（担当者の初期値と、操作の記録に使う） */
+  userName: string;
   onCreate: (project: Project) => void;
   newId: () => string;
   onToast: (message: string, type?: 'success' | 'info' | 'error') => void;
@@ -24,11 +26,11 @@ function nextProjectNo(projects: Project[]): string {
   return `KJ-2026-${String(max + 1).padStart(4, '0')}`;
 }
 
-export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Props) {
+export function QuoteImport({ partners, projects, userName, onCreate, newId, onToast }: Props) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<QuoteFile | null>(null);
   const [reading, setReading] = useState(false);
-  const [staff, setStaff] = useState(CURRENT_USER.name);
+  const [staff, setStaff] = useState(userName);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [nonWorkingDays, setNonWorkingDays] = useState('');
@@ -118,7 +120,7 @@ export function QuoteImport({ partners, projects, onCreate, newId, onToast }: Pr
         {
           id: `hx-${seqNo}-1`,
           at: nowIso(),
-          actorName: CURRENT_USER.name,
+          actorName: userName,
           action: `見積書ファイル「${selected.name}」を取り込みました`,
         },
       ],
