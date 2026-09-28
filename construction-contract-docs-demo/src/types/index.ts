@@ -5,7 +5,7 @@ export type ProjectStatus = 'imported' | 'ordered' | 'accepted' | 'completed';
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   imported: '見積書を取込済み',
-  ordered: '注文書を受領済み',
+  ordered: '注文書・約款を受領済み',
   accepted: '契約成立',
   completed: '工事完了',
 };
@@ -18,7 +18,7 @@ export const PROJECT_STATUS_TONE: Record<ProjectStatus, string> = {
 };
 
 /** 業務の進み具合（画面上部のステップ表示用）。案件詳細の「次にやること」と1対1で対応する */
-export const FLOW_STEPS: string[] = ['見積書の取り込み', '3つの書類を作る', '注文書をもらう・請書を出す', '工事完了'];
+export const FLOW_STEPS: string[] = ['見積書の取り込み', '3つの書類を作る', '注文書・約款をもらう・請書を出す', '工事完了'];
 
 /**
  * いまどのステップにいるかを返す。

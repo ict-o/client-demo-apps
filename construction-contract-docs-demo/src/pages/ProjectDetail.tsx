@@ -93,6 +93,7 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
       <NextAction
         project={project}
         actions={actions}
+        onOpenBundle={() => setBundleOpen(true)}
         generated={generated}
         regenerate={regenerate}
       />
@@ -192,37 +193,45 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
 function NextAction({
   project,
   actions,
+  onOpenBundle,
   generated,
   regenerate,
 }: {
   project: Project;
   actions: ProjectActions;
+  onOpenBundle: () => void;
   generated: boolean;
   regenerate: boolean;
 }) {
   let title: string;
   let desc: string;
-  let button: { label: string; onClick: () => void } | null = null;
+  let button: { label: string; onClick: () => void };
+  let subButton: { label: string; onClick: () => void } | null = null;
+  const bundleButton = { label: '1つのファイルにまとめる', onClick: onOpenBundle };
 
   if (!generated) {
     title = '注文書・注文請書・基本契約書（約款）を作ります';
     desc = '取り込んだ見積書の内容（取引先・工事名・金額・工期・支払い方法）が、そのまま3つの書類に入ります。入力は必要ありません。';
     button = { label: '3つの書類を作る', onClick: () => actions.generateDocs(project.id) };
   } else if (project.status === 'imported') {
-    title = 'お客様から押印済みの注文書を受け取ってください';
-    desc = 'お客様が注文書を出さない場合は、ここで作った注文書に記名押印をいただくだけで大丈夫です。受け取ったらボタンを押してください。';
-    button = { label: '押印済みの注文書を受け取った', onClick: () => actions.receiveSealedOrder(project.id) };
+    title = 'お客様から押印済みの注文書と基本契約書（約款）を受け取ってください';
+    desc = 'ここで作った注文書と基本契約書（約款）に、お客様の記名押印をいただいてください。お客様が注文書を出さない場合も、この注文書に押印をいただくだけで大丈夫です。受け取ったらボタンを押すと、約款は締結済みになります。';
+    button = { label: '注文書・約款を受け取った', onClick: () => actions.receiveSealedDocs(project.id) };
   } else if (project.status === 'ordered') {
     title = '注文請書をお客様へ送ってください';
-    desc = 'ここで作った注文請書をそのまま送れます。送ると契約成立になり、約款も締結済みとして記録されます。';
+    desc = 'ここで作った注文請書をそのまま送れます。送ると契約成立になります。';
     button = { label: '注文請書を送った', onClick: () => actions.confirmAcceptance(project.id) };
   } else if (project.status === 'accepted') {
     title = '書類はそろいました。工事が終わったら完了を登録してください';
-    desc = '書類4点は「書類」タブから1つのファイルにまとめて出力できます。';
+    desc = '書類4点は「1つのファイルにまとめる」ボタンから、いつでも1つのファイルに出力できます。';
     button = { label: '工事が完了した', onClick: () => actions.completeProject(project.id) };
+    subButton = bundleButton;
   } else {
     title = '工事完了まで登録が済んでいます';
-    desc = '書類4点は「書類」タブから1つのファイルにまとめて保管してください。';
+    desc = project.bundleFileName
+      ? `書類4点は「${project.bundleFileName}」として出力済みです。内容を変えた場合は、もう一度まとめてください。`
+      : '書類4点を1つのファイルにまとめて保管してください。';
+    button = bundleButton;
   }
 
   return (
@@ -248,11 +257,16 @@ function NextAction({
           <div className="next-title">{title}</div>
           <p className="next-desc">{desc}</p>
         </div>
-        {button && (
+        <div className="row gap-10 wrap">
+          {subButton && (
+            <button className="btn btn-secondary btn-lg" onClick={subButton.onClick}>
+              {subButton.label}
+            </button>
+          )}
           <button className="btn btn-primary btn-lg" onClick={button.onClick}>
             {button.label}
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
