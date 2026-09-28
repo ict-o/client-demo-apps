@@ -212,3 +212,14 @@ export interface QuoteReadResult {
   /** 見積書に書かれていた「工事ができない日」（読み取れない場合は空） */
   nonWorkingDays: string;
 }
+
+/** ログインできる利用者（デモ用） */
+export interface DemoAccount {
+  loginId: string;
+  password: string;
+  name: string;
+  department: string;
+}
+
+/** ログイン中の利用者 */
+export type AppUser = Omit<DemoAccount, 'password'>;

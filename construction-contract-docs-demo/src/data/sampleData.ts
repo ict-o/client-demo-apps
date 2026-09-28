@@ -2,6 +2,7 @@
 
 import type {
   ContractTerms,
+  DemoAccount,
   DocKind,
   DocStatus,
   DocumentRecord,
@@ -21,11 +22,14 @@ export const OWN_COMPANY = {
   representative: '代表取締役 宮下 泰久',
 };
 
-/** ログイン中の利用者（架空） */
-export const CURRENT_USER = {
-  name: '中村 遥',
-  department: '工事事業部 契約管理課',
-};
+/**
+ * デモ用のログインアカウント（架空）。
+ * 公開デモのため画面上にも表示している。本番では社内の認証基盤と連携する想定。
+ */
+export const DEMO_ACCOUNTS: DemoAccount[] = [
+  { loginId: 'nakamura', password: 'demo1234', name: '中村 遥', department: '工事事業部 契約管理課' },
+  { loginId: 'fujishiro', password: 'demo1234', name: '藤代 悠斗', department: '工事事業部 営業課' },
+];
 
 /** 社内担当者の候補（架空） */
 export const STAFF_OPTIONS = ['中村 遥', '藤代 悠斗', '小柳 里菜'];

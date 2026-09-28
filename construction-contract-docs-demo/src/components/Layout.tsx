@@ -1,8 +1,11 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CURRENT_USER, OWN_COMPANY } from '../data/sampleData';
+import { OWN_COMPANY } from '../data/sampleData';
+import type { AppUser } from '../types';
 
 interface LayoutProps {
+  user: AppUser;
+  onLogout: () => void;
   children: React.ReactNode;
 }
 
@@ -10,9 +13,10 @@ const NAV = [
   { label: '工事案件の一覧', path: '/' },
   { label: '見積書を取り込む', path: '/import' },
   { label: '取引先', path: '/partners' },
+  { label: '操作ガイド', path: '/guide' },
 ];
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ user, onLogout, children }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,12 +41,15 @@ export function Layout({ children }: LayoutProps) {
 
           <div className="viewer">
             <div className="viewer-name">
-              <div className="viewer-name-main">{CURRENT_USER.name} さん</div>
-              <div className="viewer-name-sub">{CURRENT_USER.department}</div>
+              <div className="viewer-name-main">{user.name} さん</div>
+              <div className="viewer-name-sub">{user.department}</div>
             </div>
             <span className="viewer-avatar" aria-hidden="true">
-              {CURRENT_USER.name.charAt(0)}
+              {user.name.charAt(0)}
             </span>
+            <button className="btn btn-secondary btn-sm" onClick={onLogout}>
+              ログアウト
+            </button>
           </div>
         </div>
 
@@ -71,7 +78,7 @@ export function Layout({ children }: LayoutProps) {
   );
 }
 
-function BrandMark() {
+export function BrandMark() {
   return (
     <span className="brand-mark" aria-hidden="true">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

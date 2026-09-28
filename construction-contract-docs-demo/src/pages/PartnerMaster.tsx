@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Partner, Project } from '../types';
 import { EmptyState } from '../components/EmptyState';
 import { Modal } from '../components/Modal';
@@ -21,6 +22,7 @@ const EMPTY: Omit<Partner, 'id'> = {
 };
 
 export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
+  const navigate = useNavigate();
   const [keyword, setKeyword] = useState('');
   const [editing, setEditing] = useState<Partner | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -74,7 +76,12 @@ export function PartnerMaster({ partners, projects, onSave, newId }: Props) {
             ここで登録した会社名・所在地・支払条件が、見積書・注文書・注文請書・約款にそのまま印字されます（全 {partners.length} 件）
           </p>
         </div>
-        <button className="btn btn-primary btn-lg" onClick={openNew}>取引先を登録する</button>
+        <div className="row gap-10 wrap">
+          <button className="btn btn-secondary btn-lg" onClick={() => navigate('/partners/import')}>
+            Excel・CSVで一括登録
+          </button>
+          <button className="btn btn-primary btn-lg" onClick={openNew}>取引先を登録する</button>
+        </div>
       </div>
 
       <div className="filter-bar">

@@ -43,6 +43,7 @@ export function ToastContainer({ toast, onClose }: ToastProps) {
         fontSize: '16px',
         fontWeight: 600,
         letterSpacing: '0.02em',
+        width: 'max-content',
         maxWidth: '90vw',
         display: 'flex',
         alignItems: 'center',
