@@ -20,8 +20,8 @@ function nextId(prefix: string) {
 export interface ProjectActions {
   /** 見積書の内容から注文書・注文請書・約款を作る */
   generateDocs: (projectId: string) => void;
-  /** お客様から押印済みの注文書を受け取ったことを登録する */
-  receiveSealedOrder: (projectId: string) => void;
+  /** お客様から押印済みの注文書と基本契約書（約款）を受け取り、約款を締結済みにする */
+  receiveSealedDocs: (projectId: string) => void;
   /** 注文請書を送付して契約成立にする */
   confirmAcceptance: (projectId: string) => void;
   /** 工事完了・引渡しを登録する */
@@ -78,19 +78,19 @@ export default function App() {
         showToast('注文書・注文請書・基本契約書（約款）を作成しました');
       },
 
-      receiveSealedOrder: projectId => {
+      receiveSealedDocs: projectId => {
         mutate(
           projectId,
-          p => ({ ...setDocStatus(p, 'order', 'sealed'), status: 'ordered' }),
-          '押印済みの注文書を受け取りました',
+          p => ({ ...setDocStatus(setDocStatus(p, 'order', 'sealed'), 'terms', 'sealed'), status: 'ordered' }),
+          '押印済みの注文書・基本契約書（約款）を受け取りました。基本契約書（約款）は締結済みです',
         );
-        showToast('押印済みの注文書を受け取りました');
+        showToast('注文書・基本契約書（約款）を受け取りました。約款は締結済みです');
       },
 
       confirmAcceptance: projectId => {
         mutate(
           projectId,
-          p => ({ ...setDocStatus(setDocStatus(p, 'acceptance', 'sent'), 'terms', 'sealed'), status: 'accepted' }),
+          p => ({ ...setDocStatus(p, 'acceptance', 'sent'), status: 'accepted' }),
           '注文請書を送付し、契約成立としました',
         );
         showToast('注文請書を送付しました。契約成立になりました');

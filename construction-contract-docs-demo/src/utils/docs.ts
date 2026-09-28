@@ -57,7 +57,7 @@ export function docFlowNote(kind: DocKind, partner: Partner): string {
     case 'acceptance':
       return `${partner.name} へお渡しする注文請書です。`;
     case 'terms':
-      return '工期・支払いなどの約束ごとをまとめた書類です。注文書・注文請書と一緒に保管します。';
+      return `工期・支払いなどの約束ごとをまとめた書類です。${partner.name} に記名押印をいただき、注文書と一緒に受け取ると締結済みになります。`;
   }
 }
 
@@ -65,6 +65,9 @@ export function docFlowNote(kind: DocKind, partner: Partner): string {
 export function docStatusLabel(kind: DocKind, status: DocStatus): string {
   if (kind === 'quote') {
     return status === 'none' ? '未取込' : '取込済み';
+  }
+  if (kind === 'terms' && status === 'sealed') {
+    return '締結済み';
   }
   return DOC_STATUS_LABELS[status];
 }

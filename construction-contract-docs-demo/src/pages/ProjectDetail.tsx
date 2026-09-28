@@ -214,12 +214,12 @@ function NextAction({
     desc = '取り込んだ見積書の内容（取引先・工事名・金額・工期・支払い方法）が、そのまま3つの書類に入ります。入力は必要ありません。';
     button = { label: '3つの書類を作る', onClick: () => actions.generateDocs(project.id) };
   } else if (project.status === 'imported') {
-    title = 'お客様から押印済みの注文書を受け取ってください';
-    desc = 'お客様が注文書を出さない場合は、ここで作った注文書に記名押印をいただくだけで大丈夫です。受け取ったらボタンを押してください。';
-    button = { label: '押印済みの注文書を受け取った', onClick: () => actions.receiveSealedOrder(project.id) };
+    title = 'お客様から押印済みの注文書と基本契約書（約款）を受け取ってください';
+    desc = 'ここで作った注文書と基本契約書（約款）に、お客様の記名押印をいただいてください。お客様が注文書を出さない場合も、この注文書に押印をいただくだけで大丈夫です。受け取ったらボタンを押すと、約款は締結済みになります。';
+    button = { label: '注文書・約款を受け取った', onClick: () => actions.receiveSealedDocs(project.id) };
   } else if (project.status === 'ordered') {
     title = '注文請書をお客様へ送ってください';
-    desc = 'ここで作った注文請書をそのまま送れます。送ると契約成立になり、約款も締結済みとして記録されます。';
+    desc = 'ここで作った注文請書をそのまま送れます。送ると契約成立になります。';
     button = { label: '注文請書を送った', onClick: () => actions.confirmAcceptance(project.id) };
   } else if (project.status === 'accepted') {
     title = '書類はそろいました。工事が終わったら完了を登録してください';
