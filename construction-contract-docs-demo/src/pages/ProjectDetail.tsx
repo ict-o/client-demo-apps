@@ -62,6 +62,12 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
   const compliance = buildComplianceItems(project, partner);
   const summary = complianceSummary(compliance);
   const generated = isGenerated(project);
+
+  /** 「見積書の内容」タブを開き、工事の条件の入力欄まで移動する */
+  const openTerms = () => {
+    setTab('quote');
+    window.setTimeout(() => document.getElementById('terms-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  };
   const regenerate = needsRegenerate(project);
 
   return (
@@ -93,12 +99,13 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
       <NextAction
         project={project}
         actions={actions}
+        onEditTerms={openTerms}
         onOpenBundle={() => setBundleOpen(true)}
         generated={generated}
         regenerate={regenerate}
       />
 
-      <CheckPanel items={compliance} summary={summary} onGoQuote={() => setTab('quote')} />
+      <CheckPanel items={compliance} summary={summary} onGoQuote={openTerms} />
 
       <div className="tabs" role="tablist" aria-label="案件の詳細">
         {TABS.map(t => (
@@ -194,12 +201,14 @@ function NextAction({
   project,
   actions,
   onOpenBundle,
+  onEditTerms,
   generated,
   regenerate,
 }: {
   project: Project;
   actions: ProjectActions;
   onOpenBundle: () => void;
+  onEditTerms: () => void;
   generated: boolean;
   regenerate: boolean;
 }) {
@@ -234,6 +243,13 @@ function NextAction({
     button = bundleButton;
   }
 
+  // 工期は任意。決まっていないうちは、いつでも入力できることを案内する
+  const noPeriod = !project.terms.startDate || !project.terms.endDate;
+  const showPeriodNote = noPeriod && project.status !== 'completed';
+  if (showPeriodNote && !subButton) {
+    subButton = { label: '工期を入力する', onClick: onEditTerms };
+  }
+
   return (
     <div className="next-card" data-tour="next-action" data-stage={`${project.status}${generated ? '-gen' : ''}`}>
       {regenerate && (
@@ -256,6 +272,11 @@ function NextAction({
           <div className="next-label">次にやること</div>
           <div className="next-title">{title}</div>
           <p className="next-desc">{desc}</p>
+          {showPeriodNote && (
+            <p className="next-note">
+              工期はまだ入っていません。決まったら「工期を入力する」から、いつでも入力できます（注文書を受け取ってからでも大丈夫です）。
+            </p>
+          )}
         </div>
         <div className="row gap-10 wrap">
           {subButton && (
@@ -447,8 +468,7 @@ function QuoteTab({
 
   const save = () => {
     const e: Record<string, string> = {};
-    if (!draft.startDate) e.startDate = '工事を始める日を入力してください';
-    if (!draft.endDate) e.endDate = '工事が終わる日を入力してください';
+    // 工期は任意。両方入っているときだけ前後関係を確かめる
     if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
       e.endDate = '終わる日は始める日より後にしてください';
     }
@@ -528,7 +548,7 @@ function QuoteTab({
       </div>
 
       <div className="card card-pad">
-        <h2 className="section-title"><span className="bar" />工事の条件（書類に印字されます）</h2>
+        <h2 className="section-title" id="terms-form"><span className="bar" />工事の条件（書類に印字されます）</h2>
 
         {locked ? (
           <div className="alert alert-info">
@@ -537,13 +557,13 @@ function QuoteTab({
           </div>
         ) : (
           <p className="fs-14 text-sub mb-16">
-            入力するのはこの4つだけです。保存すると、注文書・注文請書・約款の記載が新しくなります。
+            入力するのはこの4つだけです。保存すると、注文書・注文請書・約款の記載が新しくなります。工期は決まったときに、いつでも入力できます。
           </p>
         )}
 
         <div className="form-grid">
           <div className="field">
-            <label className="field-label" htmlFor="q-start">工事を始める日</label>
+            <label className="field-label" htmlFor="q-start">工事を始める日<span className="opt">任意</span></label>
             <input
               id="q-start"
               type="date"
@@ -555,7 +575,7 @@ function QuoteTab({
             {errors.startDate && <span className="field-error">{errors.startDate}</span>}
           </div>
           <div className="field">
-            <label className="field-label" htmlFor="q-end">工事が終わる日</label>
+            <label className="field-label" htmlFor="q-end">工事が終わる日<span className="opt">任意</span></label>
             <input
               id="q-end"
               type="date"

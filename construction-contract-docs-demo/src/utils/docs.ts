@@ -153,7 +153,7 @@ export function buildComplianceItems(project: Project, partner: Partner): Compli
       label: '工期（着手日と完成日）',
       ok: Boolean(t.startDate && t.endDate),
       value: t.startDate && t.endDate ? `${formatDate(t.startDate)} 〜 ${formatDate(t.endDate)}` : '',
-      hint: '「見積書の内容」タブの「工事の条件」で、着手日と完成日を入力してください。',
+      hint: '工期が決まったら、「見積書の内容」タブの「工事の条件」で着手日と完成日を入力してください。注文書を受け取ってから入力しても大丈夫です。',
     },
     {
       label: '工事ができない日・時間帯',
