@@ -53,11 +53,11 @@ export function docFlowNote(kind: DocKind, partner: Partner): string {
     case 'quote':
       return `${partner.name} へお出しした見積書です。`;
     case 'order':
-      return `${partner.name} からいただく注文書です。先方が注文書を出さない場合は、この書類に押印をいただくだけで済みます。`;
+      return `${partner.name} からいただく注文書です。先方が注文書を出さない場合は、この書類に押印をいただくだけで済みます。押印済みの書類が届いたら、スキャンしてアップロードします。`;
     case 'acceptance':
       return `${partner.name} へお渡しする注文請書です。`;
     case 'terms':
-      return `工期・支払いなどの約束ごとをまとめた書類です。${partner.name} に記名押印をいただき、注文書と一緒に受け取ると締結済みになります。`;
+      return `工期・支払いなどの約束ごとをまとめた書類です。${partner.name} に記名押印をいただき、押印済みの書類をアップロードすると締結済みになります。`;
   }
 }
 
@@ -94,6 +94,7 @@ export function generateDocuments(project: Project, issuedOn: string): DocumentR
   return project.documents.map(doc => {
     if (doc.kind === 'quote') return doc;
     return {
+      ...doc,
       kind: doc.kind,
       no: documentNo(project, doc.kind),
       // 既に送付・押印済みの書類は進捗を戻さず、内容だけ最新の見積書に合わせる

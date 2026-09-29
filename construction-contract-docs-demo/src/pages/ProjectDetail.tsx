@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { ProjectActions } from '../App';
-import type { ComplianceItem, ContractTerms, DocKind, Partner, Project, QuoteReadResult } from '../types';
-import { DOC_KINDS, DOC_KIND_LABELS, DOC_KIND_PLAIN } from '../types';
+import type { ComplianceItem, ContractTerms, DocKind, DocumentRecord, Partner, Project, QuoteReadResult, SealedKind } from '../types';
+import { DOC_KINDS, DOC_KIND_LABELS, DOC_KIND_PLAIN, SEALED_KINDS } from '../types';
 import { DocStatusBadge, StatusBadge } from '../components/StatusBadge';
 import { DocumentPreview } from '../components/DocumentPreview';
 import { EmptyState } from '../components/EmptyState';
 import { FlowSteps } from '../components/FlowSteps';
 import { Modal } from '../components/Modal';
+import { SealedUploadModal } from '../components/SealedUploadModal';
 import { TERMS_TEMPLATE } from '../data/sampleData';
 import { calcTotals, lineAmount } from '../utils/calc';
 import {
@@ -42,6 +43,10 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
   const [preview, setPreview] = useState<DocKind | null>(null);
   const [bundleOpen, setBundleOpen] = useState(false);
   const [replaceOpen, setReplaceOpen] = useState(false);
+  /** 押印済み書類のアップロード先（null で閉じる） */
+  const [uploadTargets, setUploadTargets] = useState<SealedKind[] | null>(null);
+  /** アップロード済みの押印済み書類を表示中の書類 */
+  const [viewScan, setViewScan] = useState<SealedKind | null>(null);
 
   const project = projects.find(p => p.id === id);
   const partner = partners.find(p => p.id === project?.partnerId);
@@ -62,6 +67,12 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
   const compliance = buildComplianceItems(project, partner);
   const summary = complianceSummary(compliance);
   const generated = isGenerated(project);
+
+  /** まだ押印済みの書類が届いていない書類（注文書・約款）をまとめて登録する */
+  const openUpload = () => {
+    const pending = SEALED_KINDS.filter(k => project.documents.find(d => d.kind === k)?.status !== 'sealed');
+    setUploadTargets(pending.length > 0 ? pending : SEALED_KINDS);
+  };
 
   /** 「見積書の内容」タブを開き、工事の条件の入力欄まで移動する */
   const openTerms = () => {
@@ -99,6 +110,7 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
       <NextAction
         project={project}
         actions={actions}
+        onUpload={openUpload}
         onEditTerms={openTerms}
         onOpenBundle={() => setBundleOpen(true)}
         generated={generated}
@@ -127,6 +139,8 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
           partner={partner}
           onPreview={setPreview}
           onOpenBundle={() => setBundleOpen(true)}
+          onUpload={openUpload}
+          onViewScan={setViewScan}
         />
       )}
 
@@ -171,6 +185,30 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
         {preview && <DocumentPreview project={project} partner={partner} kind={preview} />}
       </Modal>
 
+      {uploadTargets && (
+        <SealedUploadModal
+          project={project}
+          targets={uploadTargets}
+          onClose={() => setUploadTargets(null)}
+          onRegister={scans => {
+            actions.registerSealedDocs(project.id, scans);
+            setUploadTargets(null);
+          }}
+        />
+      )}
+
+      <ScanViewer
+        kind={viewScan}
+        doc={viewScan ? project.documents.find(d => d.kind === viewScan) : undefined}
+        project={project}
+        partner={partner}
+        onClose={() => setViewScan(null)}
+        onReplace={kind => {
+          setViewScan(null);
+          setUploadTargets([kind]);
+        }}
+      />
+
       <BundleModal
         isOpen={bundleOpen}
         onClose={() => setBundleOpen(false)}
@@ -200,6 +238,7 @@ export function ProjectDetail({ projects, partners, actions }: Props) {
 function NextAction({
   project,
   actions,
+  onUpload,
   onOpenBundle,
   onEditTerms,
   generated,
@@ -207,6 +246,7 @@ function NextAction({
 }: {
   project: Project;
   actions: ProjectActions;
+  onUpload: () => void;
   onOpenBundle: () => void;
   onEditTerms: () => void;
   generated: boolean;
@@ -223,9 +263,9 @@ function NextAction({
     desc = '取り込んだ見積書の内容（取引先・工事名・金額・工期・支払い方法）が、そのまま3つの書類に入ります。入力は必要ありません。';
     button = { label: '3つの書類を作る', onClick: () => actions.generateDocs(project.id) };
   } else if (project.status === 'imported') {
-    title = 'お客様から押印済みの注文書と基本契約書（約款）を受け取ってください';
-    desc = 'ここで作った注文書と基本契約書（約款）に、お客様の記名押印をいただいてください。お客様が注文書を出さない場合も、この注文書に押印をいただくだけで大丈夫です。受け取ったらボタンを押すと、約款は締結済みになります。';
-    button = { label: '注文書・約款を受け取った', onClick: () => actions.receiveSealedDocs(project.id) };
+    title = 'お客様から届いた押印済みの注文書と約款を登録してください';
+    desc = 'ここで作った注文書と基本契約書（約款）をお客様に送り、記名押印をいただいてください。返ってきた書類をスキャンした PDF か写真でアップロードすると、約款は締結済みになります。お客様が注文書を出さない場合も、この注文書に押印をいただくだけで大丈夫です。';
+    button = { label: '押印済みの書類を登録する', onClick: onUpload };
   } else if (project.status === 'ordered') {
     title = '注文請書をお客様へ送ってください';
     desc = 'ここで作った注文請書をそのまま送れます。送ると契約成立になります。';
@@ -372,11 +412,15 @@ function DocsTab({
   partner,
   onPreview,
   onOpenBundle,
+  onUpload,
+  onViewScan,
 }: {
   project: Project;
   partner: Partner;
   onPreview: (kind: DocKind) => void;
   onOpenBundle: () => void;
+  onUpload: () => void;
+  onViewScan: (kind: SealedKind) => void;
 }) {
   const complete = isDocSetComplete(project);
   const missingNames = project.documents.filter(d => d.status === 'none').map(d => DOC_KIND_LABELS[d.kind]);
@@ -429,8 +473,27 @@ function DocsTab({
                 {doc.issuedOn ? `${kind === 'quote' ? '取込日' : '作成日'}：${formatDate(doc.issuedOn)}` : 'まだ作っていません'}
                 {doc.autoGenerated && !missing ? '／見積書から自動作成' : ''}
               </div>
+              {(kind === 'order' || kind === 'terms') && !missing && <ScanStatus doc={doc} />}
               {missing ? (
                 <p className="fs-14 text-sub doc-hint">上の「次にやること」から作成できます。</p>
+              ) : (kind === 'order' || kind === 'terms') && doc.scan ? (
+                <div className="doc-actions">
+                  <button className="btn btn-primary btn-block" onClick={() => onViewScan(kind)}>
+                    押印済みの書類を見る
+                  </button>
+                  <button className="btn btn-secondary btn-block" onClick={() => onPreview(kind)}>
+                    作成した書類を見る
+                  </button>
+                </div>
+              ) : (kind === 'order' || kind === 'terms') && project.status !== 'completed' ? (
+                <div className="doc-actions">
+                  <button className="btn btn-secondary btn-block" onClick={() => onPreview(kind)}>
+                    書類の中身を見る
+                  </button>
+                  <button className="btn btn-primary btn-block" onClick={onUpload}>
+                    押印済みの書類を登録する
+                  </button>
+                </div>
               ) : (
                 <button className="btn btn-secondary btn-block" onClick={() => onPreview(kind)}>
                   書類の中身を見る
@@ -689,7 +752,12 @@ function BundleModal({
         <li>表紙（{project.no}／{project.title}）</li>
         {DOC_KINDS.map(kind => {
           const doc = project.documents.find(d => d.kind === kind)!;
-          return <li key={kind}>{DOC_KIND_LABELS[kind]}（{doc.no}）</li>;
+          return (
+            <li key={kind}>
+              {DOC_KIND_LABELS[kind]}（{doc.no}）
+              {doc.scan && <span className="fs-13 text-sub">：押印済みのスキャン「{doc.scan.fileName}」</span>}
+            </li>
+          );
         })}
       </ol>
       <div className="alert alert-info mt-16">
@@ -804,6 +872,93 @@ function ReplaceQuoteModal({
           （画面上に案内が出ます）。
         </div>
       </div>
+    </Modal>
+  );
+}
+
+/* ===== 押印済みの書類（お客様から届いたスキャン） ===== */
+
+/** 書類カードに出す、押印済みの書類が届いているかの表示 */
+function ScanStatus({ doc }: { doc: DocumentRecord }) {
+  if (!doc.scan) {
+    return <div className="scan-status pending">押印済みの書類：まだ届いていません</div>;
+  }
+  return (
+    <div className="scan-status done">
+      <span className="fw-700">押印済みの書類：登録済み</span>
+      <span className="scan-status-file">{doc.scan.fileName}</span>
+      <span className="fs-13">
+        {formatDateTime(doc.scan.uploadedAt)}／{doc.scan.uploadedBy}
+      </span>
+    </div>
+  );
+}
+
+/** アップロードした押印済みの書類を表示する */
+function ScanViewer({
+  kind,
+  doc,
+  project,
+  partner,
+  onClose,
+  onReplace,
+}: {
+  kind: SealedKind | null;
+  doc: DocumentRecord | undefined;
+  project: Project;
+  partner: Partner;
+  onClose: () => void;
+  onReplace: (kind: SealedKind) => void;
+}) {
+  const scan = doc?.scan;
+  const isImage = scan?.mime?.startsWith('image/');
+  return (
+    <Modal
+      isOpen={kind !== null && Boolean(scan)}
+      onClose={onClose}
+      title={kind ? `押印済みの${DOC_KIND_LABELS[kind]}` : ''}
+      width={900}
+      footer={
+        <>
+          {kind && project.status !== 'completed' && (
+            <button className="btn btn-secondary" onClick={() => onReplace(kind)}>別のファイルに差し替える</button>
+          )}
+          {scan?.url && (
+            <a className="btn btn-secondary" href={scan.url} target="_blank" rel="noreferrer">
+              別の画面で開く
+            </a>
+          )}
+          <button className="btn btn-primary" onClick={onClose}>閉じる</button>
+        </>
+      }
+    >
+      {scan && kind && (
+        <>
+          <dl className="scan-meta">
+            <div><dt>ファイル名</dt><dd>{scan.fileName}</dd></div>
+            <div><dt>登録日時</dt><dd>{formatDateTime(scan.uploadedAt)}</dd></div>
+            <div><dt>登録した人</dt><dd>{scan.uploadedBy}</dd></div>
+          </dl>
+          {scan.url ? (
+            isImage ? (
+              <img className="scan-image" src={scan.url} alt={`押印済みの${DOC_KIND_LABELS[kind]}`} />
+            ) : (
+              <iframe className="scan-frame" src={scan.url} title={`押印済みの${DOC_KIND_LABELS[kind]}`} />
+            )
+          ) : (
+            <>
+              <p className="fs-14 text-sub mb-12">
+                デモのサンプルのため、システムで作成した書類にお客様の押印がある状態で表示しています。
+                実際には、アップロードした PDF・写真がそのまま表示されます。
+              </p>
+              <div className="scan-sample">
+                <span className="scan-stamp" aria-hidden="true">押印済</span>
+                <DocumentPreview project={project} partner={partner} kind={kind} />
+              </div>
+            </>
+          )}
+        </>
+      )}
     </Modal>
   );
 }

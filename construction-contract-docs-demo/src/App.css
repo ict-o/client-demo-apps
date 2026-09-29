@@ -1044,6 +1044,8 @@ tr.row-error td { background: var(--error-light); }
   border: 1px solid var(--border);
   padding: 16px 18px 18px;
 }
+/* ダイアログを開いている間は、ダイアログの後ろに下がって操作の邪魔をしない */
+.tour-panel.behind { z-index: 900; }
 /* 照らしている場所が画面の下半分にあるときは、パネルを上に出す */
 .tour-panel.top { top: 20px; bottom: auto; }
 @media (max-width: 760px) {
@@ -1129,4 +1131,77 @@ tr.row-error td { background: var(--error-light); }
   .viewer { width: 100%; justify-content: flex-end; }
   .viewer-avatar { display: none; }
   [data-tour] { scroll-margin-top: 16px; }
+}
+
+/* ===== 押印済みの書類（お客様から届いたスキャン） ===== */
+.doc-actions { display: flex; flex-direction: column; gap: 8px; }
+.scan-status {
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.scan-status.pending { background: var(--warning-light); color: var(--warning-strong); font-weight: 600; }
+.scan-status.done { background: var(--success-light); color: var(--success-strong); }
+.scan-status-file { font-size: 14px; word-break: break-all; }
+
+.upload-slots { display: flex; flex-direction: column; gap: 14px; }
+.upload-slot { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; background: var(--card); }
+.upload-slot-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; margin-bottom: 10px; }
+.upload-slot-head .req-tag { margin-left: 0; }
+.dropzone.compact { padding: 18px 16px; }
+.dropzone.compact .dropzone-title { font-size: 16px; color: var(--accent-dark); }
+.upload-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--success-light);
+  border: 1px solid var(--success-border);
+}
+.file-icon.pdf { background: var(--error); }
+.check-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  min-height: 44px;
+  cursor: pointer;
+}
+.check-line input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+.check-line.confirm {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-light);
+}
+
+.scan-meta { display: flex; flex-wrap: wrap; gap: 6px 24px; margin-bottom: 14px; font-size: 14px; }
+.scan-meta div { display: flex; gap: 6px; }
+.scan-meta dt { color: var(--text-sub); }
+.scan-meta dd { font-weight: 700; word-break: break-all; }
+.scan-frame { width: 100%; height: 70vh; border: 1px solid var(--border); border-radius: var(--radius-md); }
+.scan-image { display: block; max-width: 100%; margin: 0 auto; border: 1px solid var(--border); border-radius: var(--radius-md); }
+.scan-sample { position: relative; }
+.scan-stamp {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  z-index: 1;
+  width: 76px;
+  height: 76px;
+  border: 3px solid var(--error);
+  border-radius: 50%;
+  color: var(--error);
+  font-weight: 700;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-12deg);
+  background: rgba(255, 255, 255, 0.6);
 }
