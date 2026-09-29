@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
-import type { AppUser, ContractTerms, DocKind, Partner, Project, QuoteReadResult } from './types';
+import type { AppUser, ContractTerms, DocKind, Partner, Project, QuoteReadResult, ScanUpload, SealedKind } from './types';
 import { DEMO_ACCOUNTS, partners as initialPartners, sampleProjects } from './data/sampleData';
 import { generateDocuments } from './utils/docs';
 import { nowIso, todayIso } from './utils/format';
@@ -46,8 +46,11 @@ function nextId(prefix: string) {
 export interface ProjectActions {
   /** 見積書の内容から注文書・注文請書・約款を作る */
   generateDocs: (projectId: string) => void;
-  /** お客様から押印済みの注文書と基本契約書（約款）を受け取り、約款を締結済みにする */
-  receiveSealedDocs: (projectId: string) => void;
+  /**
+   * お客様から届いた押印済みの注文書・基本契約書（約款）のスキャンを登録する。
+   * 両方そろうと約款は締結済みになり、案件は「注文書・約款を受領済み」へ進む。登録済みの書類なら差し替え。
+   */
+  registerSealedDocs: (projectId: string, scans: Partial<Record<SealedKind, ScanUpload>>) => void;
   /** 注文請書を送付して契約成立にする */
   confirmAcceptance: (projectId: string) => void;
   /** 工事完了・引渡しを登録する */
@@ -137,13 +140,33 @@ function AppContent() {
         showToast('注文書・注文請書・基本契約書（約款）を作成しました');
       },
 
-      receiveSealedDocs: projectId => {
+      registerSealedDocs: (projectId, scans) => {
+        const target = projects.find(p => p.id === projectId);
+        if (!target) return;
+        const kinds = (Object.keys(scans) as SealedKind[]).filter(k => scans[k]);
+        const replacing = kinds.every(k => target.documents.find(d => d.kind === k)?.status === 'sealed');
+        const label = kinds.map(k => (k === 'order' ? '注文書' : '基本契約書（約款）')).join('・');
+        const files = [...new Set(kinds.map(k => scans[k]!.fileName))].join('、');
+        const uploadedAt = nowIso();
+        const uploadedBy = user?.name ?? '';
         mutate(
           projectId,
-          p => ({ ...setDocStatus(setDocStatus(p, 'order', 'sealed'), 'terms', 'sealed'), status: 'ordered' }),
-          '押印済みの注文書・基本契約書（約款）を受け取りました。基本契約書（約款）は締結済みです',
+          p => {
+            const documents = p.documents.map(d => {
+              const scan = scans[d.kind as SealedKind];
+              if (!scan) return d;
+              return { ...d, status: 'sealed' as const, issuedOn: d.issuedOn ?? todayIso(), scan: { ...scan, uploadedAt, uploadedBy } };
+            });
+            const bothSealed = documents.filter(d => d.kind === 'order' || d.kind === 'terms').every(d => d.status === 'sealed');
+            return { ...p, documents, status: bothSealed && p.status === 'imported' ? 'ordered' : p.status };
+          },
+          replacing
+            ? `押印済みの${label}のファイルを差し替えました（${files}）`
+            : `押印済みの${label}のスキャンをアップロードしました（${files}）。基本契約書（約款）は締結済みです`,
         );
-        showToast('注文書・基本契約書（約款）を受け取りました。約款は締結済みです');
+        showToast(
+          replacing ? `押印済みの${label}のファイルを差し替えました` : '押印済みの書類を登録しました。約款は締結済みになりました',
+        );
       },
 
       confirmAcceptance: projectId => {
@@ -195,7 +218,7 @@ function AppContent() {
         showToast('見積書を差し替えました。金額と工事内容を更新しました');
       },
     }),
-    [mutate, showToast],
+    [mutate, showToast, projects, user],
   );
 
   const addProject = useCallback(

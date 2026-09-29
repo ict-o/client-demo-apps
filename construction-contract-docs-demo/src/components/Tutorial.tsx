@@ -34,6 +34,14 @@ export function Tutorial({ index, onChangeIndex, onClose }: TutorialProps) {
   const [rect, setRect] = useState<Rect | null>(null);
   /** 照らしている場所に重ならないよう、パネルを画面の上下どちらに出すか */
   const [place, setPlace] = useState<'top' | 'bottom'>('bottom');
+  /** 画面上でダイアログ（アップロードなど）が開いているか。開いている間はダイアログを隠さないよう後ろに下がる */
+  const [dialogOpen, setDialogOpen] = useState(false);
+  /**
+   * 上下どちらに出しても照らす場所に重なったステップ。説明をたたんで小さくする。
+   * たたむと高さが変わって判定が揺れるため、一度たたんだらそのステップの間はたたんだままにする
+   */
+  const [crampedId, setCrampedId] = useState<string | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   /** 利用者が「たたむ／ひらく」を押したときの指定（ステップごと） */
   const [foldChoice, setFoldChoice] = useState<{ id: string; folded: boolean } | null>(null);
   const [doneId, setDoneId] = useState<string | null>(null);
@@ -56,17 +64,28 @@ export function Tutorial({ index, onChangeIndex, onClose }: TutorialProps) {
 
   // 照らす要素の位置を測る（画面遷移・入力による高さの変化・スクロールに追従）
   const measure = useCallback(() => {
-    const el = step?.anchor ? document.querySelector<HTMLElement>(`[data-tour="${step.anchor}"]`) : null;
+    const dialog = Boolean(document.querySelector('.modal-overlay'));
+    setDialogOpen(dialog);
+    const el = !dialog && step?.anchor ? document.querySelector<HTMLElement>(`[data-tour="${step.anchor}"]`) : null;
     if (!el) {
       setRect(null);
       return;
     }
     const r = el.getBoundingClientRect();
     setRect({ top: r.top - 8, left: r.left - 8, width: r.width + 16, height: r.height + 16 });
-    // 照らす場所の上と下で、空きが大きい側にパネルを出す（行ったり来たりしないよう、差が小さいときは今のまま）
-    const above = r.top;
-    const below = window.innerHeight - r.bottom;
-    setPlace(prev => (prev === 'bottom' ? (above > below + 60 ? 'top' : 'bottom') : below > above + 60 ? 'bottom' : 'top'));
+    // パネルが照らす場所に重ならない側（上か下）に出す。どちらも入らなければ空きが大きい側に出して説明をたたむ。
+    // 行ったり来たりしないよう、今の側に収まる間は動かさない
+    const above = r.top - 8;
+    const below = window.innerHeight - r.bottom - 8;
+    const need = (panelRef.current?.offsetHeight ?? 0) + 24;
+    setPlace(prev => {
+      const fits = (side: 'top' | 'bottom') => (side === 'top' ? above : below) >= need;
+      if (fits(prev)) return prev;
+      const other = prev === 'top' ? 'bottom' : 'top';
+      if (fits(other)) return other;
+      return above > below ? 'top' : 'bottom';
+    });
+    if (step && above < need && below < need) setCrampedId(step.id);
   }, [step]);
 
   useEffect(() => {
@@ -123,7 +142,8 @@ export function Tutorial({ index, onChangeIndex, onClose }: TutorialProps) {
   useEffect(() => {
     if (index === null) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      // ダイアログが開いているときの Esc はダイアログを閉じるだけにする
+      if (e.key === 'Escape' && !document.querySelector('.modal-overlay')) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -136,7 +156,7 @@ export function Tutorial({ index, onChangeIndex, onClose }: TutorialProps) {
   const waiting = Boolean(step.action) && !done;
   // スマホ幅で操作してもらう間は、押す場所を隠さないよう説明をたたんでおく
   const narrow = window.matchMedia('(max-width: 760px)').matches;
-  const folded = foldChoice?.id === step.id ? foldChoice.folded : narrow && waiting;
+  const folded = foldChoice?.id === step.id ? foldChoice.folded : (narrow || crampedId === step.id) && waiting;
 
   return (
     <>
@@ -149,7 +169,8 @@ export function Tutorial({ index, onChangeIndex, onClose }: TutorialProps) {
       )}
 
       <div
-        className={`tour-panel ${place}${folded ? ' folded' : ''}`}
+        ref={panelRef}
+        className={`tour-panel ${place}${folded ? ' folded' : ''}${dialogOpen ? ' behind' : ''}`}
         role="dialog"
         aria-modal="false"
         aria-label="チュートリアル"
