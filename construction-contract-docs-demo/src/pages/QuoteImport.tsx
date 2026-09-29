@@ -75,8 +75,7 @@ export function QuoteImport({ partners, projects, userName, onCreate, newId, onT
   const submit = () => {
     if (!selected || !partner || !totals) return;
     const e: Record<string, string> = {};
-    if (!startDate) e.startDate = '工事を始める日を入力してください';
-    if (!endDate) e.endDate = '工事が終わる日を入力してください';
+    // 工期は任意（注文書を受け取ってから決まることもあるため、あとから案件の画面で入力できる）
     if (startDate && endDate && endDate < startDate) e.endDate = '終わる日は始める日より後にしてください';
     if (!nonWorkingDays.trim()) e.nonWorkingDays = '工事ができない日・時間帯を入力してください';
     if (!paymentMethod.trim()) e.paymentMethod = '代金の支払い方法を入力してください';
@@ -279,12 +278,12 @@ export function QuoteImport({ partners, projects, userName, onCreate, newId, onT
           <div className="card card-pad mb-16" data-tour="terms-form">
             <h2 className="section-title"><span className="bar" />見積書に書かれていない項目を入力してください</h2>
             <p className="fs-14 text-sub mb-16">
-              入力するのはこの4つだけです。ここに入れた内容が、注文書・注文請書・約款にそのまま印字されます。
+              入力するのはこの4つだけです。ここに入れた内容が、注文書・注文請書・約款にそのまま印字されます。工期は決まっていなければ空欄で大丈夫です。
             </p>
 
             <div className="form-grid">
               <div className="field">
-                <label className="field-label" htmlFor="start">工事を始める日<span className="req">必須</span></label>
+                <label className="field-label" htmlFor="start">工事を始める日<span className="opt">任意</span></label>
                 <input
                   id="start"
                   type="date"
@@ -295,7 +294,7 @@ export function QuoteImport({ partners, projects, userName, onCreate, newId, onT
                 {errors.startDate && <span className="field-error">{errors.startDate}</span>}
               </div>
               <div className="field">
-                <label className="field-label" htmlFor="end">工事が終わる日<span className="req">必須</span></label>
+                <label className="field-label" htmlFor="end">工事が終わる日<span className="opt">任意</span></label>
                 <input
                   id="end"
                   type="date"
@@ -306,6 +305,9 @@ export function QuoteImport({ partners, projects, userName, onCreate, newId, onT
                 {errors.endDate && <span className="field-error">{errors.endDate}</span>}
               </div>
             </div>
+            <p className="field-hint mt-4 mb-16">
+              工期は任意です。まだ決まっていなければ空欄のままで登録し、注文書を受け取ってから案件の画面で入力できます。
+            </p>
 
             <div className="field">
               <label className="field-label" htmlFor="nonwork">工事ができない日・時間帯<span className="req">必須</span></label>
@@ -370,7 +372,7 @@ export function QuoteImport({ partners, projects, userName, onCreate, newId, onT
               <ReadItem label="工事名" value={selected.read.title} badge={false} />
               <ReadItem label="取引先" value={partner?.name ?? '（取引先が未登録です）'} badge={false} />
               <ReadItem label="請負代金（税込）" value={formatYen(totals.total)} strong badge={false} />
-              <ReadItem label="工期" value={startDate && endDate ? `${formatDate(startDate)} 〜 ${formatDate(endDate)}` : '未入力'} badge={false} />
+              <ReadItem label="工期" value={startDate && endDate ? `${formatDate(startDate)} 〜 ${formatDate(endDate)}` : '未定（あとで入力）'} badge={false} />
               <ReadItem label="社内の担当者" value={staff} badge={false} />
             </div>
           </div>

@@ -171,7 +171,7 @@ function AppContent() {
       },
 
       updateTerms: (projectId, terms) => {
-        mutate(projectId, p => ({ ...p, revision: p.revision + 1, terms }), '工事の条件を変更しました');
+        mutate(projectId, p => ({ ...p, terms }), '工事の条件を変更しました');
         showToast('工事の条件を保存しました。書類の記載に反映されます');
       },
 
